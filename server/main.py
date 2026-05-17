@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any
+import os
+import pymongo
 
 app = FastAPI(title="RS Enterprise Antigravity Backend")
 
@@ -18,15 +20,38 @@ class ConfigureRequest(BaseModel):
     client_profile: Dict[str, Any]
     technical_requirements: Dict[str, Any]
 
+# Connect to MongoDB Atlas if MONGO_URI is set in the environment
+MONGO_URI = os.getenv("MONGO_URI")
+db_connected = False
+leads_collection = None
+
+if MONGO_URI:
+    try:
+        # Create a MongoClient with SRV support
+        client = pymongo.MongoClient(MONGO_URI)
+        db = client["rs_enterprise"]
+        leads_collection = db["leads"]
+        # Trigger connection verification
+        client.admin.command('ping')
+        db_connected = True
+        print("Successfully connected to MongoDB Atlas!")
+    except Exception as e:
+        print(f"Error connecting to MongoDB: {e}")
+
 @app.post("/api/configure")
 async def configure_machine(req: ConfigureRequest):
-    # In a real scenario, this would connect to MongoDB here:
-    # client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
-    # await client.rs_enterprise.leads.insert_one(req.dict())
+    # Insert payload into MongoDB if connected
+    if db_connected and leads_collection is not None:
+        try:
+            leads_collection.insert_one(req.dict())
+            print("Successfully saved lead to MongoDB Atlas!")
+        except Exception as e:
+            print(f"Failed to save lead to MongoDB: {e}")
     
     # Process the Antigravity system logic
     return {
         "status": "success",
+        "database_connected": db_connected,
         "machine_configuration": {
             "base_model": "RS-Titan 5X-Pro",
             "spindle_speed_rpm": 24000,
@@ -52,4 +77,7 @@ async def configure_machine(req: ConfigureRequest):
 
 @app.get("/")
 def read_root():
-    return {"message": "Antigravity Gemini 3.1 Pro Backend is active."}
+    return {
+        "message": "Antigravity Gemini 3.1 Pro Backend is active.",
+        "database_connected": db_connected
+    }
