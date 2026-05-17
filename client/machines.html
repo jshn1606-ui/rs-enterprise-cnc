@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Machines - RS Enterprise CNC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="mesh-background"></div>
+
+    <header class="glass-navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo"><span class="logo-bold">RS</span> Enterprise</a>
+            <nav class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="machines.html" class="nav-link active">Machines</a>
+                <a href="configurator.html" class="nav-link">Configurator</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="login.html" class="nav-link btn-nav">Admin</a>
+            </nav>
+            <button class="nav-toggle" id="nav-toggle"><i class="fa-solid fa-bars"></i></button>
+        </div>
+    </header>
+
+    <main class="page-container">
+        <section class="hero-section" style="padding-bottom: 2rem;">
+            <span class="hero-tagline">Industrial Machine Catalog</span>
+            <h1 class="hero-title">Our CNC Machines</h1>
+            <p class="hero-subtitle">Explore every machine in our inventory — specifications, pricing, axis configurations, and availability. All managed in real-time by our Ludhiana engineering team.</p>
+        </section>
+
+        <!-- Filter Bar -->
+        <div class="machine-filter-bar" id="filter-bar" style="display:none;">
+            <button class="filter-btn active" data-filter="all">All Machines</button>
+            <button class="filter-btn" data-filter="in_stock">In Stock</button>
+            <button class="filter-btn" data-filter="special_order">Special Order</button>
+            <button class="filter-btn" data-filter="out_of_stock">Out of Stock</button>
+        </div>
+
+        <!-- Machines Grid -->
+        <div id="machines-grid" class="machines-catalog-grid" style="margin-top: 2rem;">
+            <div class="catalog-loading">
+                <i class="fa-solid fa-gear fa-spin" style="font-size:2rem;color:var(--accent-blue);"></i>
+                <p style="margin-top:1rem;color:var(--text-muted);">Loading machines from database...</p>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="catalog-empty" style="display:none;">
+            <i class="fa-solid fa-boxes-stacked" style="font-size:3rem;color:var(--text-muted);margin-bottom:1rem;"></i>
+            <h3 style="color:var(--text-muted);">No Machines Listed Yet</h3>
+            <p style="color:var(--text-muted);margin-top:0.5rem;">Our engineering team is preparing the catalog. Check back soon!</p>
+        </div>
+    </main>
+
+    <footer class="glass-footer">
+        <div class="footer-container">
+            <p>&copy; 2026 RS Enterprise. All Rights Reserved. Opp. G.T. Road, Ludhiana.</p>
+            <p class="designer">Designed & Engineered by Antigravity AI</p>
+        </div>
+    </footer>
+
+    <script src="navbar.js"></script>
+    <script>
+        const API = 'https://rs-enterprise-api.onrender.com';
+        const grid = document.getElementById('machines-grid');
+        const filterBar = document.getElementById('filter-bar');
+        const emptyState = document.getElementById('empty-state');
+        let allMachines = [];
+
+        // Fetch and render
+        fetch(`${API}/api/machines`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success' && data.machines.length > 0) {
+                    allMachines = data.machines;
+                    filterBar.style.display = 'flex';
+                    renderMachines(allMachines);
+                } else {
+                    grid.innerHTML = '';
+                    emptyState.style.display = 'flex';
+                }
+            })
+            .catch(() => {
+                grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:3rem;">Backend is waking up — please refresh in 30 seconds.</p>';
+            });
+
+        function renderMachines(machines) {
+            grid.innerHTML = '';
+            if (machines.length === 0) {
+                grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:3rem;grid-column:1/-1;">No machines match this filter.</p>';
+                return;
+            }
+            machines.forEach(m => {
+                const hasImg = m.image_data && m.image_data.startsWith('data:');
+                const badgeClass = m.stock_status === 'in_stock' ? 'badge-instock' : m.stock_status === 'out_of_stock' ? 'badge-outofstock' : 'badge-special';
+                const badgeText = m.stock_status === 'in_stock' ? 'In Stock' : m.stock_status === 'out_of_stock' ? 'Out of Stock' : 'Special Order';
+
+                const card = document.createElement('div');
+                card.className = 'machine-catalog-card';
+                card.innerHTML = `
+                    ${hasImg ? `<div class="catalog-card-img"><img src="${m.image_data}" alt="${m.name}"></div>` : `<div class="catalog-card-img catalog-card-placeholder"><i class="fa-solid fa-gear"></i></div>`}
+                    <div class="catalog-card-body">
+                        <div class="catalog-card-header">
+                            <h3>${m.name}</h3>
+                            <span class="badge ${badgeClass}">${badgeText}</span>
+                        </div>
+                        <p class="catalog-card-desc">${m.description}</p>
+                        <div class="catalog-specs">
+                            <div class="catalog-spec">
+                                <i class="fa-solid fa-arrows-spin"></i>
+                                <span>${m.axis_config}</span>
+                            </div>
+                            <div class="catalog-spec">
+                                <i class="fa-solid fa-gauge-high"></i>
+                                <span>${(m.spindle_speed_rpm || 0).toLocaleString()} RPM</span>
+                            </div>
+                            <div class="catalog-spec">
+                                <i class="fa-solid fa-expand"></i>
+                                <span>${m.max_footprint_sqft || '—'} sq ft</span>
+                            </div>
+                            <div class="catalog-spec">
+                                <i class="fa-solid fa-wrench"></i>
+                                <span>${m.tooling_kit || '—'}</span>
+                            </div>
+                        </div>
+                        <div class="catalog-card-footer">
+                            <span class="catalog-price">$${(m.base_price_usd || 0).toLocaleString()}</span>
+                            <a href="configurator.html" class="btn-primary" style="font-size:0.85rem;padding:0.5rem 1.2rem;border:none;">Configure <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const f = btn.getAttribute('data-filter');
+                renderMachines(f === 'all' ? allMachines : allMachines.filter(m => m.stock_status === f));
+            });
+        });
+    </script>
+</body>
+</html>
