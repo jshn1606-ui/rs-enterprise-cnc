@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - RS Enterprise CNC</title>
+    <title>Command Center - RS Enterprise CNC</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,9 +14,7 @@
     <!-- Navigation Header -->
     <header class="glass-navbar">
         <div class="nav-container">
-            <a href="index.html" class="logo">
-                <span class="logo-bold">RS</span> Enterprise
-            </a>
+            <a href="index.html" class="logo"><span class="logo-bold">RS</span> Enterprise</a>
             <nav class="nav-menu" id="nav-menu">
                 <a href="index.html" class="nav-link">Home</a>
                 <a href="about.html" class="nav-link">About</a>
@@ -27,21 +25,17 @@
                 <a href="contact.html" class="nav-link">Contact</a>
                 <a href="login.html" class="nav-link btn-nav active">Admin</a>
             </nav>
-            <button class="nav-toggle" id="nav-toggle">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+            <button class="nav-toggle" id="nav-toggle"><i class="fa-solid fa-bars"></i></button>
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="page-container" style="max-width: 1200px;">
 
-        <!-- ═══ LOGIN CARD ═══ -->
+        <!-- ═══ LOGIN ═══ -->
         <section id="login-section" class="hero-section" style="padding-bottom: 2rem; max-width: 480px; margin: 0 auto;">
             <span class="hero-tagline">Secure Authentication</span>
-            <h1 class="hero-title" style="font-size: 2rem;">Admin Portal</h1>
-            <p class="hero-subtitle" style="font-size: 1rem; margin-bottom: 2rem;">Server-side authenticated. Credentials verified against Render environment.</p>
-
+            <h1 class="hero-title" style="font-size: 2rem;">Command Center</h1>
+            <p class="hero-subtitle" style="font-size: 1rem; margin-bottom: 2rem;">Server-side verified against Render environment.</p>
             <form class="glass-form" id="login-form" style="text-align: left;">
                 <div class="form-group">
                     <label>Username</label>
@@ -51,41 +45,101 @@
                     <label>Password</label>
                     <input type="password" id="password" class="glass-input" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn-primary" style="border: none; width: 100%; justify-content: center; cursor: pointer; margin-top: 1rem;">
-                    Log In <i class="fa-solid fa-right-to-bracket"></i>
-                </button>
+                <button type="submit" class="btn-primary" style="border:none;width:100%;justify-content:center;cursor:pointer;margin-top:1rem;">Log In <i class="fa-solid fa-right-to-bracket"></i></button>
             </form>
         </section>
 
-        <!-- ═══ ADMIN DASHBOARD (HIDDEN UNTIL LOGIN) ═══ -->
-        <section id="dashboard-section" class="hidden" style="width: 100%;">
+        <!-- ═══ COMMAND CENTER (HIDDEN UNTIL LOGIN) ═══ -->
+        <section id="dashboard-section" class="hidden" style="width:100%;">
 
-            <!-- Dashboard Header -->
-            <div class="admin-header">
-                <div>
-                    <h1 class="admin-title">CMS Dashboard</h1>
-                    <p class="admin-subtitle">Manage machines, leads, and ROI parameters in real-time.</p>
+            <!-- Global Action Bar -->
+            <div class="action-bar">
+                <div class="action-bar-left">
+                    <h1 class="admin-title"><i class="fa-solid fa-satellite-dish"></i> Command Center</h1>
                 </div>
-                <button class="btn-logout" onclick="logout()">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
-                </button>
+                <div class="action-bar-right">
+                    <!-- Quick Add Dropdown -->
+                    <div class="quick-add-wrapper">
+                        <button class="action-bar-btn quick-add-btn" id="quick-add-btn">
+                            <i class="fa-solid fa-plus"></i> Quick Add <i class="fa-solid fa-caret-down" style="margin-left:4px;"></i>
+                        </button>
+                        <div class="quick-add-menu hidden" id="quick-add-menu">
+                            <button onclick="quickAddMachine()"><i class="fa-solid fa-gear"></i> New Machine</button>
+                        </div>
+                    </div>
+                    <!-- Theme Toggle -->
+                    <button class="action-bar-btn" id="theme-toggle" title="Toggle Light/Dark Mode">
+                        <i class="fa-solid fa-moon" id="theme-icon"></i>
+                    </button>
+                    <!-- Logout -->
+                    <button class="action-bar-btn btn-logout-bar" onclick="logout()">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
             </div>
 
             <!-- Tab Navigation -->
             <div class="admin-tabs-bar">
-                <button class="admin-tab active" data-tab="tab-inventory">
+                <button class="admin-tab active" data-tab="tab-analytics">
+                    <i class="fa-solid fa-chart-line"></i> Analytics
+                </button>
+                <button class="admin-tab" data-tab="tab-inventory">
                     <i class="fa-solid fa-boxes-stacked"></i> Inventory
                 </button>
                 <button class="admin-tab" data-tab="tab-add-machine">
-                    <i class="fa-solid fa-plus-circle"></i> Add / Edit Machine
+                    <i class="fa-solid fa-plus-circle"></i> Add / Edit
                 </button>
-                <button class="admin-tab" data-tab="tab-leads-settings">
-                    <i class="fa-solid fa-inbox"></i> Leads & Settings
+                <button class="admin-tab" data-tab="tab-leads">
+                    <i class="fa-solid fa-inbox"></i> Leads & CRM
+                </button>
+                <button class="admin-tab" data-tab="tab-settings">
+                    <i class="fa-solid fa-sliders"></i> AI Tuning
                 </button>
             </div>
 
-            <!-- ── TAB 1: Machine Inventory ── -->
-            <div class="tab-panel" id="tab-inventory">
+            <!-- ── TAB 1: Analytics Overview ── -->
+            <div class="tab-panel" id="tab-analytics">
+                <div class="stat-cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-icon"><i class="fa-solid fa-gear"></i></div>
+                        <div class="stat-card-value" id="stat-machines">—</div>
+                        <div class="stat-card-label">Total Machines</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="color: var(--accent-orange);"><i class="fa-solid fa-inbox"></i></div>
+                        <div class="stat-card-value" id="stat-leads">—</div>
+                        <div class="stat-card-label">Total Leads</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="color: #00e676;"><i class="fa-solid fa-dollar-sign"></i></div>
+                        <div class="stat-card-value" id="stat-pipeline">—</div>
+                        <div class="stat-card-label">Pipeline Value</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="color: #ffc107;"><i class="fa-solid fa-fire"></i></div>
+                        <div class="stat-card-value" id="stat-popular">—</div>
+                        <div class="stat-card-label">Most Requested</div>
+                    </div>
+                </div>
+
+                <!-- Lead Status Breakdown -->
+                <div class="glass-form" style="margin-top: 2rem;">
+                    <h3 style="color: var(--accent-blue); margin-bottom: 1.5rem;"><i class="fa-solid fa-funnel-dollar"></i> Lead Pipeline Breakdown</h3>
+                    <div class="pipeline-bars" id="pipeline-bars">
+                        <div class="pipeline-row"><span class="pipeline-label">New Requests</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-new" id="pipe-new" style="width:0%"></div></div><span class="pipeline-count" id="pipe-new-n">0</span></div>
+                        <div class="pipeline-row"><span class="pipeline-label">In Contact</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-contact" id="pipe-contact" style="width:0%"></div></div><span class="pipeline-count" id="pipe-contact-n">0</span></div>
+                        <div class="pipeline-row"><span class="pipeline-label">Quote Sent</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-quote" id="pipe-quote" style="width:0%"></div></div><span class="pipeline-count" id="pipe-quote-n">0</span></div>
+                        <div class="pipeline-row"><span class="pipeline-label">Won</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-won" id="pipe-won" style="width:0%"></div></div><span class="pipeline-count" id="pipe-won-n">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── TAB 2: Inventory ── -->
+            <div class="tab-panel hidden" id="tab-inventory">
+                <div class="inventory-toolbar">
+                    <h2 style="color: var(--accent-blue);"><i class="fa-solid fa-boxes-stacked"></i> Machine Inventory</h2>
+                    <button class="action-bar-btn" onclick="exportCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                </div>
                 <div class="leads-container">
                     <table class="leads-table">
                         <thead>
@@ -93,31 +147,26 @@
                                 <th>Machine Name</th>
                                 <th>Axis Config</th>
                                 <th>Spindle</th>
-                                <th>Price (USD)</th>
+                                <th>Price</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="machines-tbody">
-                            <tr><td colspan="6" class="empty-state">Loading machines...</td></tr>
+                            <tr><td colspan="6" class="empty-state">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- ── TAB 2: Add / Edit Machine ── -->
+            <!-- ── TAB 3: Add / Edit Machine ── -->
             <div class="tab-panel hidden" id="tab-add-machine">
-                <div class="glass-form" style="max-width: 800px; margin: 0 auto;">
-                    <h2 id="form-title" style="margin-bottom: 2rem; color: var(--accent-blue);">Add New Machine</h2>
-
+                <div class="glass-form" style="max-width:800px;margin:0 auto;">
+                    <h2 id="form-title" style="margin-bottom:2rem;color:var(--accent-blue);">Add New Machine</h2>
                     <form id="machine-form">
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Machine Name</label>
-                                <input type="text" id="m-name" class="glass-input" placeholder="RS-Titan 5X-Pro" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Axis Configuration</label>
+                            <div class="form-group"><label>Machine Name</label><input type="text" id="m-name" class="glass-input" placeholder="RS-Titan 5X-Pro" required></div>
+                            <div class="form-group"><label>Axis Configuration</label>
                                 <select id="m-axis" class="glass-input" required>
                                     <option value="3-Axis Standard">3-Axis Standard</option>
                                     <option value="4-Axis Rotary">4-Axis Rotary</option>
@@ -126,30 +175,14 @@
                                 </select>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label>Description</label>
-                            <textarea id="m-desc" class="glass-input glass-textarea" placeholder="Detailed machine description..." required></textarea>
-                        </div>
-
+                        <div class="form-group"><label>Description</label><textarea id="m-desc" class="glass-input glass-textarea" placeholder="Detailed machine description..." required></textarea></div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Spindle Speed (RPM)</label>
-                                <input type="number" id="m-spindle" class="glass-input" placeholder="24000" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Max Footprint (sq ft)</label>
-                                <input type="number" id="m-footprint" class="glass-input" placeholder="200" required>
-                            </div>
+                            <div class="form-group"><label>Spindle Speed (RPM)</label><input type="number" id="m-spindle" class="glass-input" placeholder="24000" required></div>
+                            <div class="form-group"><label>Max Footprint (sq ft)</label><input type="number" id="m-footprint" class="glass-input" placeholder="200" required></div>
                         </div>
-
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Base Price (USD)</label>
-                                <input type="number" id="m-price" class="glass-input" placeholder="185000" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Stock Status</label>
+                            <div class="form-group"><label>Base Price (USD)</label><input type="number" id="m-price" class="glass-input" placeholder="185000" required></div>
+                            <div class="form-group"><label>Stock Status</label>
                                 <select id="m-stock" class="glass-input" required>
                                     <option value="in_stock">In Stock</option>
                                     <option value="special_order">Special Order</option>
@@ -157,13 +190,7 @@
                                 </select>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label>Tooling Kit</label>
-                            <input type="text" id="m-tooling" class="glass-input" placeholder="Titanium/Steel High-Yield End Mills" required>
-                        </div>
-
-                        <!-- Image Upload Zone -->
+                        <div class="form-group"><label>Tooling Kit</label><input type="text" id="m-tooling" class="glass-input" placeholder="Titanium/Steel High-Yield End Mills" required></div>
                         <div class="form-group">
                             <label>Machine Image</label>
                             <div class="upload-zone" id="upload-zone">
@@ -171,78 +198,74 @@
                                 <span class="upload-text">Drag & drop image here, or click to browse</span>
                                 <span class="upload-hint">PNG, JPG up to 5MB</span>
                             </div>
-                            <input type="file" id="image-input" accept="image/*" style="display: none;">
+                            <input type="file" id="image-input" accept="image/*" style="display:none;">
                             <img id="image-preview" class="image-preview hidden" alt="Preview">
                         </div>
-
                         <div class="form-actions">
-                            <button type="submit" class="btn-primary" style="border: none; flex: 1; justify-content: center; cursor: pointer;">
-                                <i class="fa-solid fa-save"></i> Save Machine
-                            </button>
-                            <button type="button" id="cancel-edit-btn" class="btn-secondary hidden" style="flex: 0 0 auto; cursor: pointer;">
-                                Cancel Edit
-                            </button>
+                            <button type="submit" class="btn-primary" style="border:none;flex:1;justify-content:center;cursor:pointer;"><i class="fa-solid fa-save"></i> Save Machine</button>
+                            <button type="button" id="cancel-edit-btn" class="btn-secondary hidden" style="flex:0 0 auto;cursor:pointer;">Cancel Edit</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- ── TAB 3: Leads & ROI Settings ── -->
-            <div class="tab-panel hidden" id="tab-leads-settings">
-                <!-- Leads Table -->
-                <h2 style="margin-bottom: 1.5rem; color: var(--accent-blue);"><i class="fa-solid fa-inbox"></i> Configurator Leads</h2>
+            <!-- ── TAB 4: Leads & CRM ── -->
+            <div class="tab-panel hidden" id="tab-leads">
+                <h2 style="margin-bottom:1.5rem;color:var(--accent-blue);"><i class="fa-solid fa-inbox"></i> Configurator Leads</h2>
                 <div class="leads-container">
                     <table class="leads-table">
                         <thead>
                             <tr>
                                 <th>Industry</th>
                                 <th>Material</th>
-                                <th>Required Axes</th>
-                                <th>Max Footprint</th>
-                                <th>Target Cycle Time</th>
+                                <th>Axes</th>
+                                <th>Footprint</th>
+                                <th>Cycle Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="leads-tbody">
-                            <tr><td colspan="5" class="empty-state">Loading leads...</td></tr>
+                            <tr><td colspan="7" class="empty-state">Loading leads...</td></tr>
                         </tbody>
                     </table>
                 </div>
+            </div>
 
-                <!-- ROI Settings Panel -->
-                <h2 style="margin: 3rem 0 1.5rem; color: var(--accent-orange);"><i class="fa-solid fa-sliders"></i> ROI Parameter Tuning</h2>
-                <div class="glass-form" style="max-width: 700px;">
-                    <p style="color: var(--text-muted); margin-bottom: 2rem;">These values feed directly into the Antigravity Gemini 3.1 Pro configurator engine. Changes apply instantly to all new calculations.</p>
+            <!-- ── TAB 5: AI Tuning ── -->
+            <div class="tab-panel hidden" id="tab-settings">
+                <div class="glass-form" style="max-width:800px;">
+                    <h2 style="color:var(--accent-orange);margin-bottom:0.5rem;"><i class="fa-solid fa-brain"></i> Antigravity AI Parameter Tuning</h2>
+                    <p style="color:var(--text-muted);margin-bottom:2rem;">Changes apply instantly to all new configurator calculations on the live site.</p>
                     <form id="settings-form">
+                        <h3 style="color:var(--accent-blue);margin-bottom:1rem;font-size:1rem;text-transform:uppercase;letter-spacing:1px;">ROI Defaults</h3>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Default Payback (Months)</label>
-                                <input type="number" id="s-payback" class="glass-input" value="14" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Annual Savings (USD)</label>
-                                <input type="number" id="s-savings" class="glass-input" value="42000" required>
-                            </div>
+                            <div class="form-group"><label>Default Payback (Months)</label><input type="number" id="s-payback" class="glass-input" value="14" required></div>
+                            <div class="form-group"><label>Annual Savings (USD)</label><input type="number" id="s-savings" class="glass-input" value="42000" required></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Efficiency Gain (%)</label>
-                                <input type="number" id="s-efficiency" class="glass-input" value="18.5" step="0.1" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Cycle Time Reduction Factor</label>
-                                <input type="number" id="s-cycle" class="glass-input" value="0.9" step="0.01" required>
-                            </div>
+                            <div class="form-group"><label>Efficiency Gain (%)</label><input type="number" id="s-efficiency" class="glass-input" value="18.5" step="0.1" required></div>
+                            <div class="form-group"><label>Cycle Time Reduction Factor</label><input type="number" id="s-cycle" class="glass-input" value="0.9" step="0.01" required></div>
                         </div>
-                        <button type="submit" class="btn-primary" style="border: none; width: 100%; justify-content: center; cursor: pointer;">
-                            <i class="fa-solid fa-save"></i> Save ROI Settings
+                        <h3 style="color:var(--accent-blue);margin:2rem 0 1rem;font-size:1rem;text-transform:uppercase;letter-spacing:1px;">Ludhiana Cost Parameters</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>Electricity Cost (₹/kWh)</label><input type="number" id="s-electricity" class="glass-input" value="8.5" step="0.1" required></div>
+                            <div class="form-group"><label>Operator Hourly Wage (₹)</label><input type="number" id="s-wage" class="glass-input" value="350" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Tooling Wear Rate (%)</label><input type="number" id="s-tooling-wear" class="glass-input" value="2.5" step="0.1" required></div>
+                            <div class="form-group"></div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="border:none;width:100%;justify-content:center;cursor:pointer;">
+                            <i class="fa-solid fa-save"></i> Save & Recalibrate
                         </button>
                     </form>
                 </div>
             </div>
+
         </section>
     </main>
 
-    <!-- Global Footer -->
     <footer class="glass-footer">
         <div class="footer-container">
             <p>&copy; 2026 RS Enterprise. All Rights Reserved. Opp. G.T. Road, Ludhiana.</p>
