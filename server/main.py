@@ -75,6 +75,17 @@ async def configure_machine(req: ConfigureRequest):
         }
     }
 
+@app.get("/api/leads")
+def get_leads():
+    if db_connected and leads_collection is not None:
+        try:
+            # Fetch all leads, exclude the non-serializable ObjectId field
+            leads = list(leads_collection.find({}, {"_id": 0}))
+            return {"status": "success", "leads": leads}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+    return {"status": "error", "message": "Database not connected"}
+
 @app.get("/")
 def read_root():
     return {

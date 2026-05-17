@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - RS Enterprise CNC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="mesh-background"></div>
+
+    <!-- Navigation Header -->
+    <header class="glass-navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-bold">RS</span> Enterprise
+            </a>
+            <nav class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="configurator.html" class="nav-link">Configurator</a>
+                <a href="staff.html" class="nav-link">Staff</a>
+                <a href="gallery.html" class="nav-link">Gallery</a>
+                <a href="results.html" class="nav-link">Results</a>
+                <a href="contact.html" class="nav-link active">Contact</a>
+                <a href="login.html" class="nav-link btn-nav">Admin</a>
+            </nav>
+            <button class="nav-toggle" id="nav-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="page-container">
+        <section class="hero-section" style="padding-bottom: 2rem;">
+            <span class="hero-tagline">Get In Touch</span>
+            <h1 class="hero-title">Start Your Industrial Journey</h1>
+            <p class="hero-subtitle">Book a free engineering counseling session or custom gantry machine consultation at our Ludhiana office.</p>
+        </section>
+
+        <!-- Contact Grid -->
+        <div class="contact-grid" style="margin-top: 2rem;">
+            <!-- Form -->
+            <form class="glass-form" onsubmit="event.preventDefault(); alert('Message sent successfully!');">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" class="glass-input" placeholder="Jashan Singh" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="glass-input" placeholder="jashan@example.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" class="glass-input" placeholder="+91 90507 00577" required>
+                </div>
+                <div class="form-group">
+                    <label>Inquiry Message</label>
+                    <textarea class="glass-input glass-textarea" placeholder="Tell us about your machine specifications or required axes..." required></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="border: none; width: 100%; justify-content: center; cursor: pointer;">Send Message <i class="fa-solid fa-paper-plane"></i></button>
+            </form>
+
+            <!-- Info Panels -->
+            <div class="contact-info-panel">
+                <div class="info-box">
+                    <h3>Office Address</h3>
+                    <p><i class="fa-solid fa-map-location-dot"></i> Opp. G.T. Road, Industrial Area-A, Ludhiana, Punjab, India</p>
+                </div>
+                <div class="info-box">
+                    <h3>Contact Numbers</h3>
+                    <p><i class="fa-solid fa-phone"></i> +91 90507 00577</p>
+                    <p><i class="fa-solid fa-envelope"></i> jshn1606@gmail.com</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="glass-footer">
+        <div class="footer-container">
+            <p>&copy; 2026 RS Enterprise. All Rights Reserved. Opp. G.T. Road, Ludhiana.</p>
+            <p class="designer">Designed & Engineered by Antigravity AI</p>
+        </div>
+    </footer>
+
+    <script src="navbar.js"></script>
+</body>
+</html>

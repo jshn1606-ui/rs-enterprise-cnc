@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - RS Enterprise CNC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="mesh-background"></div>
+
+    <!-- Navigation Header -->
+    <header class="glass-navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-bold">RS</span> Enterprise
+            </a>
+            <nav class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="configurator.html" class="nav-link">Configurator</a>
+                <a href="staff.html" class="nav-link">Staff</a>
+                <a href="gallery.html" class="nav-link">Gallery</a>
+                <a href="results.html" class="nav-link">Results</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="login.html" class="nav-link btn-nav active">Admin</a>
+            </nav>
+            <button class="nav-toggle" id="nav-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="page-container">
+        <!-- LOGIN CARD -->
+        <section id="login-section" class="hero-section" style="padding-bottom: 2rem; max-width: 500px; margin: 0 auto;">
+            <span class="hero-tagline">Secure Authentication</span>
+            <h1 class="hero-title" style="font-size: 2rem;">Admin Login</h1>
+            
+            <form class="glass-form" id="login-form" style="margin-top: 2rem; text-align: left;">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" class="glass-input" placeholder="admin" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" class="glass-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-primary" style="border: none; width: 100%; justify-content: center; cursor: pointer; margin-top: 1rem;">Log In <i class="fa-solid fa-right-to-bracket"></i></button>
+            </form>
+        </section>
+
+        <!-- ADMIN DASHBOARD PANEL (HIDDEN BY DEFAULT) -->
+        <section id="dashboard-section" class="hidden" style="width: 100%;">
+            <div class="section-header">
+                <h1 class="hero-title" style="font-size: 2.5rem; margin-bottom: 0.5rem;">CNC Configuration Leads</h1>
+                <p class="section-subtitle">Real-time incoming client parameters fetched directly from your MongoDB Atlas database.</p>
+            </div>
+
+            <!-- Leads Table -->
+            <div class="leads-container">
+                <table class="leads-table">
+                    <thead>
+                        <tr>
+                            <th>Industry</th>
+                            <th>Material</th>
+                            <th>Required Axes</th>
+                            <th>Max Footprint (sqft)</th>
+                            <th>Target Cycle Time (m)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leads-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-muted);">Fetching live leads from database...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="glass-footer">
+        <div class="footer-container">
+            <p>&copy; 2026 RS Enterprise. All Rights Reserved. Opp. G.T. Road, Ludhiana.</p>
+            <p class="designer">Designed & Engineered by Antigravity AI</p>
+        </div>
+    </footer>
+
+    <script src="navbar.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            if (user === 'admin' && pass === 'Jashan_1606') {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                fetchLeads();
+            } else {
+                alert('Invalid admin credentials.');
+            }
+        });
+
+        function fetchLeads() {
+            const tbody = document.getElementById('leads-tbody');
+            
+            fetch('https://rs-enterprise-api.onrender.com/api/leads')
+                .then(res => res.json())
+                .then(data => {
+                    tbody.innerHTML = '';
+                    if (data.status === 'success' && data.leads.length > 0) {
+                        data.leads.forEach(lead => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td><strong>${lead.client_profile?.industry || 'Unknown'}</strong></td>
+                                <td>${lead.technical_requirements?.material || 'Unknown'}</td>
+                                <td><span style="color: var(--accent-orange); font-weight:600;">${lead.technical_requirements?.required_axes || 3}-Axis</span></td>
+                                <td>${lead.technical_requirements?.max_footprint_sqft || 'Unknown'} sq ft</td>
+                                <td>${lead.technical_requirements?.target_cycle_time_mins || 'Unknown'} mins</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No leads found in database.</td></tr>';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching leads:', err);
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error connecting to Render backend leads API.</td></tr>';
+                });
+        }
+    </script>
+</body>
+</html>
