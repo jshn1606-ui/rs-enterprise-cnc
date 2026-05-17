@@ -34,13 +34,15 @@
     </header>
 
     <!-- Main Container -->
-    <main class="page-container">
-        <!-- LOGIN CARD -->
-        <section id="login-section" class="hero-section" style="padding-bottom: 2rem; max-width: 500px; margin: 0 auto;">
+    <main class="page-container" style="max-width: 1200px;">
+
+        <!-- ═══ LOGIN CARD ═══ -->
+        <section id="login-section" class="hero-section" style="padding-bottom: 2rem; max-width: 480px; margin: 0 auto;">
             <span class="hero-tagline">Secure Authentication</span>
-            <h1 class="hero-title" style="font-size: 2rem;">Admin Login</h1>
-            
-            <form class="glass-form" id="login-form" style="margin-top: 2rem; text-align: left;">
+            <h1 class="hero-title" style="font-size: 2rem;">Admin Portal</h1>
+            <p class="hero-subtitle" style="font-size: 1rem; margin-bottom: 2rem;">Server-side authenticated. Credentials verified against Render environment.</p>
+
+            <form class="glass-form" id="login-form" style="text-align: left;">
                 <div class="form-group">
                     <label>Username</label>
                     <input type="text" id="username" class="glass-input" placeholder="admin" required>
@@ -49,35 +51,193 @@
                     <label>Password</label>
                     <input type="password" id="password" class="glass-input" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn-primary" style="border: none; width: 100%; justify-content: center; cursor: pointer; margin-top: 1rem;">Log In <i class="fa-solid fa-right-to-bracket"></i></button>
+                <button type="submit" class="btn-primary" style="border: none; width: 100%; justify-content: center; cursor: pointer; margin-top: 1rem;">
+                    Log In <i class="fa-solid fa-right-to-bracket"></i>
+                </button>
             </form>
         </section>
 
-        <!-- ADMIN DASHBOARD PANEL (HIDDEN BY DEFAULT) -->
+        <!-- ═══ ADMIN DASHBOARD (HIDDEN UNTIL LOGIN) ═══ -->
         <section id="dashboard-section" class="hidden" style="width: 100%;">
-            <div class="section-header">
-                <h1 class="hero-title" style="font-size: 2.5rem; margin-bottom: 0.5rem;">CNC Configuration Leads</h1>
-                <p class="section-subtitle">Real-time incoming client parameters fetched directly from your MongoDB Atlas database.</p>
+
+            <!-- Dashboard Header -->
+            <div class="admin-header">
+                <div>
+                    <h1 class="admin-title">CMS Dashboard</h1>
+                    <p class="admin-subtitle">Manage machines, leads, and ROI parameters in real-time.</p>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
             </div>
 
-            <!-- Leads Table -->
-            <div class="leads-container">
-                <table class="leads-table">
-                    <thead>
-                        <tr>
-                            <th>Industry</th>
-                            <th>Material</th>
-                            <th>Required Axes</th>
-                            <th>Max Footprint (sqft)</th>
-                            <th>Target Cycle Time (m)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leads-tbody">
-                        <tr>
-                            <td colspan="5" style="text-align: center; color: var(--text-muted);">Fetching live leads from database...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Tab Navigation -->
+            <div class="admin-tabs-bar">
+                <button class="admin-tab active" data-tab="tab-inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i> Inventory
+                </button>
+                <button class="admin-tab" data-tab="tab-add-machine">
+                    <i class="fa-solid fa-plus-circle"></i> Add / Edit Machine
+                </button>
+                <button class="admin-tab" data-tab="tab-leads-settings">
+                    <i class="fa-solid fa-inbox"></i> Leads & Settings
+                </button>
+            </div>
+
+            <!-- ── TAB 1: Machine Inventory ── -->
+            <div class="tab-panel" id="tab-inventory">
+                <div class="leads-container">
+                    <table class="leads-table">
+                        <thead>
+                            <tr>
+                                <th>Machine Name</th>
+                                <th>Axis Config</th>
+                                <th>Spindle</th>
+                                <th>Price (USD)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="machines-tbody">
+                            <tr><td colspan="6" class="empty-state">Loading machines...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── TAB 2: Add / Edit Machine ── -->
+            <div class="tab-panel hidden" id="tab-add-machine">
+                <div class="glass-form" style="max-width: 800px; margin: 0 auto;">
+                    <h2 id="form-title" style="margin-bottom: 2rem; color: var(--accent-blue);">Add New Machine</h2>
+
+                    <form id="machine-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Machine Name</label>
+                                <input type="text" id="m-name" class="glass-input" placeholder="RS-Titan 5X-Pro" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Axis Configuration</label>
+                                <select id="m-axis" class="glass-input" required>
+                                    <option value="3-Axis Standard">3-Axis Standard</option>
+                                    <option value="4-Axis Rotary">4-Axis Rotary</option>
+                                    <option value="5-Axis Trunnion">5-Axis Trunnion</option>
+                                    <option value="5-Axis Swivel Head">5-Axis Swivel Head</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="m-desc" class="glass-input glass-textarea" placeholder="Detailed machine description..." required></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Spindle Speed (RPM)</label>
+                                <input type="number" id="m-spindle" class="glass-input" placeholder="24000" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Max Footprint (sq ft)</label>
+                                <input type="number" id="m-footprint" class="glass-input" placeholder="200" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Base Price (USD)</label>
+                                <input type="number" id="m-price" class="glass-input" placeholder="185000" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Stock Status</label>
+                                <select id="m-stock" class="glass-input" required>
+                                    <option value="in_stock">In Stock</option>
+                                    <option value="special_order">Special Order</option>
+                                    <option value="out_of_stock">Out of Stock</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tooling Kit</label>
+                            <input type="text" id="m-tooling" class="glass-input" placeholder="Titanium/Steel High-Yield End Mills" required>
+                        </div>
+
+                        <!-- Image Upload Zone -->
+                        <div class="form-group">
+                            <label>Machine Image</label>
+                            <div class="upload-zone" id="upload-zone">
+                                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                                <span class="upload-text">Drag & drop image here, or click to browse</span>
+                                <span class="upload-hint">PNG, JPG up to 5MB</span>
+                            </div>
+                            <input type="file" id="image-input" accept="image/*" style="display: none;">
+                            <img id="image-preview" class="image-preview hidden" alt="Preview">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" style="border: none; flex: 1; justify-content: center; cursor: pointer;">
+                                <i class="fa-solid fa-save"></i> Save Machine
+                            </button>
+                            <button type="button" id="cancel-edit-btn" class="btn-secondary hidden" style="flex: 0 0 auto; cursor: pointer;">
+                                Cancel Edit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── TAB 3: Leads & ROI Settings ── -->
+            <div class="tab-panel hidden" id="tab-leads-settings">
+                <!-- Leads Table -->
+                <h2 style="margin-bottom: 1.5rem; color: var(--accent-blue);"><i class="fa-solid fa-inbox"></i> Configurator Leads</h2>
+                <div class="leads-container">
+                    <table class="leads-table">
+                        <thead>
+                            <tr>
+                                <th>Industry</th>
+                                <th>Material</th>
+                                <th>Required Axes</th>
+                                <th>Max Footprint</th>
+                                <th>Target Cycle Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leads-tbody">
+                            <tr><td colspan="5" class="empty-state">Loading leads...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ROI Settings Panel -->
+                <h2 style="margin: 3rem 0 1.5rem; color: var(--accent-orange);"><i class="fa-solid fa-sliders"></i> ROI Parameter Tuning</h2>
+                <div class="glass-form" style="max-width: 700px;">
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">These values feed directly into the Antigravity Gemini 3.1 Pro configurator engine. Changes apply instantly to all new calculations.</p>
+                    <form id="settings-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Default Payback (Months)</label>
+                                <input type="number" id="s-payback" class="glass-input" value="14" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Annual Savings (USD)</label>
+                                <input type="number" id="s-savings" class="glass-input" value="42000" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Efficiency Gain (%)</label>
+                                <input type="number" id="s-efficiency" class="glass-input" value="18.5" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Cycle Time Reduction Factor</label>
+                                <input type="number" id="s-cycle" class="glass-input" value="0.9" step="0.01" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="border: none; width: 100%; justify-content: center; cursor: pointer;">
+                            <i class="fa-solid fa-save"></i> Save ROI Settings
+                        </button>
+                    </form>
+                </div>
             </div>
         </section>
     </main>
@@ -91,49 +251,6 @@
     </footer>
 
     <script src="navbar.js"></script>
-    <script>
-        document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-
-            if (user === 'admin' && pass === 'Jashan_1606') {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('dashboard-section').classList.remove('hidden');
-                fetchLeads();
-            } else {
-                alert('Invalid admin credentials.');
-            }
-        });
-
-        function fetchLeads() {
-            const tbody = document.getElementById('leads-tbody');
-            
-            fetch('https://rs-enterprise-api.onrender.com/api/leads')
-                .then(res => res.json())
-                .then(data => {
-                    tbody.innerHTML = '';
-                    if (data.status === 'success' && data.leads.length > 0) {
-                        data.leads.forEach(lead => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td><strong>${lead.client_profile?.industry || 'Unknown'}</strong></td>
-                                <td>${lead.technical_requirements?.material || 'Unknown'}</td>
-                                <td><span style="color: var(--accent-orange); font-weight:600;">${lead.technical_requirements?.required_axes || 3}-Axis</span></td>
-                                <td>${lead.technical_requirements?.max_footprint_sqft || 'Unknown'} sq ft</td>
-                                <td>${lead.technical_requirements?.target_cycle_time_mins || 'Unknown'} mins</td>
-                            `;
-                            tbody.appendChild(tr);
-                        });
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No leads found in database.</td></tr>';
-                    }
-                })
-                .catch(err => {
-                    console.error('Error fetching leads:', err);
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error connecting to Render backend leads API.</td></tr>';
-                });
-        }
-    </script>
+    <script src="admin.js"></script>
 </body>
 </html>
