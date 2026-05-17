@@ -39,7 +39,7 @@
             <p class="hero-subtitle">Professional CNC design, 5-axis synchronous milling setups, and industrial G-code path simulation engineered for high-yield efficiency.</p>
             <div class="hero-btns">
                 <a href="configurator.html" class="btn-primary">Launch Configurator <i class="fa-solid fa-play"></i></a>
-                <a href="gallery.html" class="btn-secondary">Explore Gallery <i class="fa-solid fa-images"></i></a>
+                <a href="contact.html" class="btn-secondary">Get In Touch <i class="fa-solid fa-envelope"></i></a>
             </div>
         </section>
 
@@ -61,6 +61,15 @@
                 <div class="stat-num">99.8%</div>
                 <div class="stat-label">Uptime Record</div>
             </div>
+        </section>
+
+        <!-- Dynamic Machines from Admin CMS (permanent until admin deletes) -->
+        <section id="machines-section" style="margin-top: 6rem; display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Our CNC Machines</h2>
+                <p class="section-subtitle">Browse our latest inventory — added and managed by our engineering team.</p>
+            </div>
+            <div class="features-grid" id="public-machines-grid"></div>
         </section>
 
         <!-- Why Choose Us Grid -->
@@ -98,5 +107,48 @@
     </footer>
 
     <script src="navbar.js"></script>
+    <script>
+        // Fetch machines from API and display on public homepage
+        const API = 'https://rs-enterprise-api.onrender.com';
+        const grid = document.getElementById('public-machines-grid');
+        const section = document.getElementById('machines-section');
+
+        fetch(`${API}/api/machines`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success' && data.machines.length > 0) {
+                    section.style.display = 'block';
+                    grid.innerHTML = '';
+                    data.machines.forEach(m => {
+                        // Only show in-stock and special-order machines
+                        if (m.stock_status === 'out_of_stock') return;
+
+                        const hasImg = m.image_data && m.image_data.startsWith('data:');
+                        const imgHtml = hasImg
+                            ? `<img src="${m.image_data}" alt="${m.name}" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:1rem;">`
+                            : '';
+
+                        const badgeClass = m.stock_status === 'in_stock' ? 'badge-instock' : 'badge-special';
+                        const badgeText = m.stock_status === 'in_stock' ? 'In Stock' : 'Special Order';
+
+                        const card = document.createElement('div');
+                        card.className = 'feature-card';
+                        card.innerHTML = `
+                            ${imgHtml}
+                            <h3>${m.name} <span class="badge ${badgeClass}" style="font-size:0.7rem;vertical-align:middle;">${badgeText}</span></h3>
+                            <p>${m.description}</p>
+                            <p style="color:var(--accent-blue);font-size:0.85rem;margin-top:0.8rem;font-weight:600;">
+                                ${m.axis_config} · ${(m.spindle_speed_rpm||0).toLocaleString()} RPM · $${(m.base_price_usd||0).toLocaleString()}
+                            </p>
+                        `;
+                        grid.appendChild(card);
+                    });
+                    // If all were out of stock, hide section
+                    if (grid.children.length === 0) section.style.display = 'none';
+                }
+            })
+            .catch(() => {}); // Silent fail — static content still shows
+    </script>
 </body>
 </html>
+
