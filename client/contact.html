@@ -42,24 +42,24 @@
         <!-- Contact Grid -->
         <div class="contact-grid" style="margin-top: 2rem;">
             <!-- Form -->
-            <form class="glass-form" onsubmit="event.preventDefault(); alert('Message sent successfully!');">
+            <form id="contact-form" class="glass-form" onsubmit="submitContactForm(event)">
                 <div class="form-row">
                     <div class="form-group">
                         <label>Your Name</label>
-                        <input type="text" class="glass-input" placeholder="Jashan Singh" required>
+                        <input type="text" id="c-name" class="glass-input" placeholder="Jashan Singh" required>
                     </div>
                     <div class="form-group">
                         <label>Email Address</label>
-                        <input type="email" class="glass-input" placeholder="jashan@example.com" required>
+                        <input type="email" id="c-email" class="glass-input" placeholder="jashan@example.com" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Phone Number</label>
-                    <input type="tel" class="glass-input" placeholder="+91 90507 00577" required>
+                    <input type="tel" id="c-phone" class="glass-input" placeholder="+91 90507 00577" required>
                 </div>
                 <div class="form-group">
                     <label>Inquiry Message</label>
-                    <textarea class="glass-input glass-textarea" placeholder="Tell us about your machine specifications or required axes..." required></textarea>
+                    <textarea id="c-message" class="glass-input glass-textarea" placeholder="Tell us about your machine specifications or required axes..." required></textarea>
                 </div>
                 <button type="submit" class="btn-primary" style="border: none; width: 100%; justify-content: center; cursor: pointer;">Send Message <i class="fa-solid fa-paper-plane"></i></button>
             </form>
@@ -100,6 +100,7 @@
     <script src="navbar.js"></script>
     <script>
         const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : 'https://rs-enterprise-api.onrender.com';
+        
         async function fetchContactDetails() {
             try {
                 const res = await fetch(`${API}/api/public/settings`);
@@ -152,6 +153,34 @@
                 console.error("Failed to load contact details", err);
             }
         }
+        
+        async function submitContactForm(event) {
+            event.preventDefault();
+            const payload = {
+                client_name: document.getElementById('c-name').value.trim(),
+                contact_email: document.getElementById('c-email').value.trim(),
+                contact_phone: document.getElementById('c-phone').value.trim(),
+                message: document.getElementById('c-message').value.trim()
+            };
+
+            try {
+                const res = await fetch(`${API}/api/contact`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert(`Message sent successfully! Our engineering team will review your message and contact you shortly.`);
+                    document.getElementById('contact-form').reset();
+                } else {
+                    alert('Submission failed: ' + (data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Server is currently cold-starting — please try again in 30 seconds.');
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', fetchContactDetails);
     </script>
 </body>
