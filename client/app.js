@@ -103,6 +103,43 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.status === 'success') {
                 document.getElementById('roi-payback').textContent = data.roi_report.payback_period_months + " Months";
                 document.getElementById('roi-savings').textContent = "$" + data.roi_report.projected_annual_savings_usd.toLocaleString();
+
+                // Secure Frontend Email Dispatch (Bypasses Render firewall blocks completely!)
+                const emailSubject = `🚨 New CNC Sale & Configuration Query from ${payload.client_profile.company_name || 'N/A'}`;
+                const emailBody = `
+========================================
+CNC Sale & Configuration Query
+========================================
+Company Name: ${payload.client_profile.company_name || 'N/A'}
+Contact Person: ${payload.client_profile.contact_name || 'N/A'}
+Email Address: ${payload.client_profile.contact_email || 'N/A'}
+Phone Number: ${payload.client_profile.contact_phone || 'N/A'}
+
+Technical Specifications:
+- Required Axes: ${payload.technical_requirements.required_axes}-Axis
+- Target Cycle Time: ${payload.technical_requirements.target_cycle_time_mins} mins
+- Workpiece Material: ${payload.technical_requirements.workpiece_material || 'N/A'}
+- Monthly Production Volume: ${payload.technical_requirements.monthly_volume || 'N/A'} units/month
+- Base Model: ${data.machine_configuration.base_model}
+- Spindle Speed: ${data.machine_configuration.spindle_speed_rpm} RPM
+- Recommended Tooling: ${data.machine_configuration.recommended_tooling_kit}
+- Estimated Price: $${data.machine_configuration.estimated_price_usd.toLocaleString()}
+========================================
+Notification automatically dispatched by RS Enterprise CNC Portal.
+                `;
+
+                fetch('https://formsubmit.co/ajax/jashansohal2008@gmail.com', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: emailSubject,
+                        email: payload.client_profile.contact_email,
+                        message: emailBody,
+                        _template: 'box'
+                    })
+                }).then(r => r.json())
+                  .then(d => console.log('Frontend sales email alert dispatched:', d))
+                  .catch(e => console.error('Frontend sales email dispatch failed:', e));
             } else {
                 alert("Configuration failed. Please try again.");
             }

@@ -316,11 +316,47 @@ ticketForm.addEventListener('submit', async (e) => {
             // Generate beautiful Ticket ID
             const hex = Math.floor(Math.random()*65535).toString(16).toUpperCase();
             const rand = Math.floor(1000 + Math.random()*9000);
-            successTicketId.textContent = `TKT-${hex}-${rand}`;
+            const ticketId = `TKT-${hex}-${rand}`;
+            successTicketId.textContent = ticketId;
 
             // Show Success portal Screen
             portalWorkspace.classList.add('hidden');
             successScreen.classList.remove('hidden');
+
+            // Secure Frontend Email Dispatch (Bypasses Render firewall blocks completely!)
+            const emailSubject = `🛠️ New CNC Maintenance Ticket: ${payload.urgency} Urgency from ${payload.client_name}`;
+            const emailBody = `
+========================================
+CNC Maintenance & Repair Ticket: ${ticketId}
+========================================
+Company / Client: ${payload.client_name}
+Email Address: ${payload.contact_email}
+Phone Number: ${payload.contact_phone}
+Machine Model: ${payload.machine_model}
+Issue Category: ${payload.issue_category}
+Urgency Level: ${payload.urgency}
+Error Code: ${payload.error_code || 'None'}
+
+Description of Symptoms:
+${payload.description}
+
+Attached Images: ${payload.images.length} photo(s) uploaded.
+========================================
+Notification automatically dispatched by RS Enterprise CNC Portal.
+            `;
+
+            fetch('https://formsubmit.co/ajax/jashansohal2008@gmail.com', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    _subject: emailSubject,
+                    email: payload.contact_email,
+                    message: emailBody,
+                    _template: 'box'
+                })
+            }).then(r => r.json())
+              .then(d => console.log('Frontend email alert dispatched:', d))
+              .catch(e => console.error('Frontend email dispatch failed:', e));
         } else {
             alert('Failed to submit: ' + (data.message || 'Unknown error'));
         }
