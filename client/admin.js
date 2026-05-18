@@ -10,7 +10,8 @@ const loginForm = document.getElementById('login-form');
 const tabs = document.querySelectorAll('.admin-tab');
 const tabPanels = document.querySelectorAll('.tab-panel');
 const machinesBody = document.getElementById('machines-tbody');
-const leadsBody = document.getElementById('leads-tbody');
+const inquiriesBody = document.getElementById('inquiries-tbody');
+const repairsBody = document.getElementById('repairs-tbody');
 const machineForm = document.getElementById('machine-form');
 const formTitle = document.getElementById('form-title');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
@@ -349,50 +350,102 @@ async function loadLeads() {
     try {
         const res = await fetch(`${API_BASE}/api/maintenance`, { headers: authHeaders() });
         const data = await res.json();
-        leadsBody.innerHTML = '';
+        
+        inquiriesBody.innerHTML = '';
+        repairsBody.innerHTML = '';
+        
         if (data.status === 'success' && data.tickets.length > 0) {
             allTickets = data.tickets;
+            let inquiryCount = 0;
+            let repairCount = 0;
+            
             data.tickets.forEach(ticket => {
-                const tr = document.createElement('tr');
                 const status = ticket.status || 'new';
                 const clientName = ticket.client_name || 'N/A';
                 const machineModel = ticket.machine_model || 'N/A';
                 const issueCategory = ticket.issue_category || 'N/A';
                 const contactEmail = ticket.contact_email || '';
                 const contactPhone = ticket.contact_phone || '';
+                const description = ticket.description || 'N/A';
+                const urgency = ticket.urgency || 'Low';
+                const errorCode = ticket.error_code || '—';
                 const tid = ticket._id;
 
-                // Category Badges
                 const isQuery = issueCategory.toLowerCase().includes('inquiry');
-                const catBadgeClass = isQuery ? 'badge-special' : 'badge-instock';
-
-                tr.innerHTML = `
-                    <td><strong>${clientName}</strong></td>
-                    <td><span style="color:var(--accent-blue); font-weight:600;">${machineModel}</span></td>
-                    <td><span class="badge ${catBadgeClass}">${issueCategory}</span></td>
-                    <td>
-                        <div style="font-size:0.85rem;">
-                            <a href="mailto:${contactEmail}" style="color:#00e6f2;text-decoration:none;display:block;"><i class="fa-solid fa-envelope" style="font-size:0.75rem;margin-right:4px;"></i>${contactEmail}</a>
-                            <span style="color:var(--text-muted);display:block;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:0.75rem;margin-right:4px;"></i>${contactPhone}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <select class="lead-status-select" onchange="updateTicketStatus('${tid}', this.value)">
-                            <option value="new" ${status==='new'?'selected':''}>🟡 New / Pending</option>
-                            <option value="in_diagnostic" ${status==='in_diagnostic'?'selected':''}>🔵 Contacted / Diagnostic</option>
-                            <option value="in_progress" ${status==='in_progress'?'selected':''}>🟠 Negotiation / In Progress</option>
-                            <option value="resolved" ${status==='resolved'?'selected':''}>🟢 Won / Resolved</option>
-                            <option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected / Closed</option>
-                        </select>
-                    </td>
-                    <td class="action-cell">
-                        <button class="action-btn edit-btn" onclick="viewTicketDetail('${tid}')" title="View Details"><i class="fa-solid fa-eye"></i></button>
-                        <button class="action-btn delete-btn" onclick="deleteTicket('${tid}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
-                    </td>`;
-                leadsBody.appendChild(tr);
+                const tr = document.createElement('tr');
+                
+                if (isQuery) {
+                    inquiryCount++;
+                    // Render Machine Inquiry row
+                    tr.innerHTML = `
+                        <td><strong>${clientName}</strong></td>
+                        <td><span style="color:var(--accent-blue); font-weight:600;">${machineModel}</span></td>
+                        <td>
+                            <div style="font-size:0.85rem;">
+                                <a href="mailto:${contactEmail}" style="color:#00e6f2;text-decoration:none;display:block;"><i class="fa-solid fa-envelope" style="font-size:0.75rem;margin-right:4px;"></i>${contactEmail}</a>
+                                <span style="color:var(--text-muted);display:block;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:0.75rem;margin-right:4px;"></i>${contactPhone}</span>
+                            </div>
+                        </td>
+                        <td title="${description}"><span style="max-width:200px; display:inline-block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-muted);">${description}</span></td>
+                        <td>
+                            <select class="lead-status-select" onchange="updateTicketStatus('${tid}', this.value)">
+                                <option value="new" ${status==='new'?'selected':''}>🟡 New Lead</option>
+                                <option value="in_diagnostic" ${status==='in_diagnostic'?'selected':''}>🔵 Contacted</option>
+                                <option value="in_progress" ${status==='in_progress'?'selected':''}>🟠 Negotiation</option>
+                                <option value="resolved" ${status==='resolved'?'selected':''}>🟢 Closed Won</option>
+                                <option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option>
+                            </select>
+                        </td>
+                        <td class="action-cell">
+                            <button class="action-btn edit-btn" onclick="viewTicketDetail('${tid}')" title="View Details"><i class="fa-solid fa-eye"></i></button>
+                            <button class="action-btn delete-btn" onclick="deleteTicket('${tid}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        </td>`;
+                    inquiriesBody.appendChild(tr);
+                } else {
+                    repairCount++;
+                    // Render Machine Repair Ticket row
+                    const urgencyBadgeClass = urgency === 'High' ? 'badge-outofstock' : urgency === 'Medium' ? 'badge-special' : 'badge-instock';
+                    tr.innerHTML = `
+                        <td><strong>${clientName}</strong></td>
+                        <td><span style="color:var(--accent-blue); font-weight:600;">${machineModel}</span></td>
+                        <td>
+                            <strong>${issueCategory}</strong>
+                            ${errorCode && errorCode !== '—' ? `<br><small style="color:var(--text-muted);">Error: ${errorCode}</small>` : ''}
+                        </td>
+                        <td>
+                            <div style="font-size:0.85rem;">
+                                <a href="mailto:${contactEmail}" style="color:#00e6f2;text-decoration:none;display:block;"><i class="fa-solid fa-envelope" style="font-size:0.75rem;margin-right:4px;"></i>${contactEmail}</a>
+                                <span style="color:var(--text-muted);display:block;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:0.75rem;margin-right:4px;"></i>${contactPhone}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge ${urgencyBadgeClass}">${urgency}</span></td>
+                        <td>
+                            <select class="lead-status-select" onchange="updateTicketStatus('${tid}', this.value)">
+                                <option value="new" ${status==='new'?'selected':''}>🟡 New</option>
+                                <option value="in_diagnostic" ${status==='in_diagnostic'?'selected':''}>🔵 Diagnostic</option>
+                                <option value="in_progress" ${status==='in_progress'?'selected':''}>🟠 In Progress</option>
+                                <option value="resolved" ${status==='resolved'?'selected':''}>🟢 Resolved</option>
+                                <option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option>
+                            </select>
+                        </td>
+                        <td class="action-cell">
+                            <button class="action-btn edit-btn" onclick="viewTicketDetail('${tid}')" title="View Details"><i class="fa-solid fa-eye"></i></button>
+                            <button class="action-btn delete-btn" onclick="deleteTicket('${tid}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        </td>`;
+                    repairsBody.appendChild(tr);
+                }
             });
-        } else { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state">No leads or tickets received yet.</td></tr>'; }
-    } catch (err) { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state error-state">Error loading leads & tickets.</td></tr>'; }
+
+            if (inquiryCount === 0) inquiriesBody.innerHTML = '<tr><td colspan="6" class="empty-state">No sales inquiries yet.</td></tr>';
+            if (repairCount === 0) repairsBody.innerHTML = '<tr><td colspan="7" class="empty-state">No active repair tickets.</td></tr>';
+        } else {
+            inquiriesBody.innerHTML = '<tr><td colspan="6" class="empty-state">No sales inquiries yet.</td></tr>';
+            repairsBody.innerHTML = '<tr><td colspan="7" class="empty-state">No active repair tickets.</td></tr>';
+        }
+    } catch (err) {
+        inquiriesBody.innerHTML = '<tr><td colspan="6" class="empty-state error-state">Error loading inquiries.</td></tr>';
+        repairsBody.innerHTML = '<tr><td colspan="7" class="empty-state error-state">Error loading repair tickets.</td></tr>';
+    }
 }
 
 async function updateTicketStatus(tid, s) { 

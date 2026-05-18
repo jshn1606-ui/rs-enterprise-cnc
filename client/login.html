@@ -247,8 +247,11 @@
                 <button class="admin-tab" data-tab="tab-add-machine">
                     <i class="fa-solid fa-plus-circle"></i> Add / Edit
                 </button>
-                <button class="admin-tab" data-tab="tab-leads">
-                    <i class="fa-solid fa-screwdriver-wrench"></i> Inquiries & Repairs
+                <button class="admin-tab" data-tab="tab-inquiries">
+                    <i class="fa-solid fa-comments-dollar"></i> Machine Inquiries
+                </button>
+                <button class="admin-tab" data-tab="tab-repairs">
+                    <i class="fa-solid fa-screwdriver-wrench"></i> Machine Repairs
                 </button>
                 <button class="admin-tab" data-tab="tab-settings">
                     <i class="fa-solid fa-sliders"></i> AI Tuning
@@ -402,23 +405,46 @@
                 </div>
             </div>
 
-            <!-- ── TAB 4: CRM & Maintenance Hub ── -->
-            <div class="tab-panel hidden" id="tab-leads">
-                <h2 style="margin-bottom:1.5rem;color:var(--accent-blue);"><i class="fa-solid fa-screwdriver-wrench"></i> Leads & Maintenance Tickets</h2>
+            <!-- ── TAB 4: Machine Inquiries ── -->
+            <div class="tab-panel hidden" id="tab-inquiries">
+                <h2 style="margin-bottom:1.5rem;color:var(--accent-blue);"><i class="fa-solid fa-comments-dollar"></i> Buyer Sales Inquiries</h2>
                 <div class="leads-container">
                     <table class="leads-table">
                         <thead>
                             <tr>
-                                <th>Client / Buyer</th>
-                                <th>Machine Model</th>
-                                <th>Request Type / Issue</th>
-                                <th>Contact Info</th>
-                                <th>Status</th>
+                                <th>Buyer / Company</th>
+                                <th>Inquired Machine</th>
+                                <th>Contact Information</th>
+                                <th>Message Brief</th>
+                                <th>Lead Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="leads-tbody">
-                            <tr><td colspan="6" class="empty-state">Loading tickets...</td></tr>
+                        <tbody id="inquiries-tbody">
+                            <tr><td colspan="6" class="empty-state">Loading inquiries...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── TAB 5: Machine Repairs ── -->
+            <div class="tab-panel hidden" id="tab-repairs">
+                <h2 style="margin-bottom:1.5rem;color:var(--accent-blue);"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance & Repair Tickets</h2>
+                <div class="leads-container">
+                    <table class="leads-table">
+                        <thead>
+                            <tr>
+                                <th>Client / Company</th>
+                                <th>Machine Model</th>
+                                <th>Issue / Error Code</th>
+                                <th>Contact Information</th>
+                                <th>Urgency</th>
+                                <th>Ticket Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="repairs-tbody">
+                            <tr><td colspan="7" class="empty-state">Loading repair tickets...</td></tr>
                         </tbody>
                     </table>
                 </div>
