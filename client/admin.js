@@ -46,7 +46,24 @@ function showDashboard() {
     loginSection.style.display = 'none';
     dashboardSection.classList.remove('hidden');
     dashboardSection.style.display = 'block';
+    updateEnvironmentBadge();
     loadAnalytics(); loadMachines(); loadLeads(); loadSettings();
+}
+
+function updateEnvironmentBadge() {
+    const badge = document.getElementById('env-badge');
+    if (!badge) return;
+    if (API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1')) {
+        badge.innerHTML = `<i class="fa-solid fa-server" style="margin-right:4px;"></i> LOCAL TESTING DATABASE (Changes only show locally)`;
+        badge.style.background = 'rgba(255, 82, 82, 0.12)';
+        badge.style.border = '1px solid rgba(255, 82, 82, 0.25)';
+        badge.style.color = '#ff5252';
+    } else {
+        badge.innerHTML = `<i class="fa-solid fa-globe" style="margin-right:4px;"></i> LIVE PRODUCTION DATABASE (Changes show instantly on main website)`;
+        badge.style.background = 'rgba(0, 230, 118, 0.12)';
+        badge.style.border = '1px solid rgba(0, 230, 118, 0.25)';
+        badge.style.color = '#00e676';
+    }
 }
 
 // ─── Tabs ───────────────────────────────────────────────────────────
