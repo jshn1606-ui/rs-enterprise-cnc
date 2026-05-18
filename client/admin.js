@@ -18,6 +18,21 @@ const imageInput = document.getElementById('image-input');
 const uploadZone = document.getElementById('upload-zone');
 const thumbnailsGrid = document.getElementById('image-thumbnails');
 const settingsForm = document.getElementById('settings-form');
+const isQueryPriceCheckbox = document.getElementById('m-is-query-price');
+const priceInput = document.getElementById('m-price');
+
+if (isQueryPriceCheckbox && priceInput) {
+    isQueryPriceCheckbox.addEventListener('change', () => {
+        if (isQueryPriceCheckbox.checked) {
+            priceInput.disabled = true;
+            priceInput.required = false;
+            priceInput.value = '';
+        } else {
+            priceInput.disabled = false;
+            priceInput.required = true;
+        }
+    });
+}
 
 function authHeaders() {
     return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` };
@@ -136,11 +151,16 @@ async function loadMachines() {
                 const toggleColor = m.stock_status === 'in_stock' ? 'color:#00e676' : 'color:#ff5252';
                 const imgCount = (m.images && m.images.length) || (m.image_data ? 1 : 0);
                 const tr = document.createElement('tr');
+                
+                const priceText = m.is_query_for_price 
+                    ? `<span style="color:#00e6f2;font-weight:600;font-size:0.85rem;">Query for Price</span>` 
+                    : `$${(m.base_price_usd||0).toLocaleString()}`;
+
                 tr.innerHTML = `
                     <td><strong>${m.name}</strong><br><small style="color:var(--text-muted)">${imgCount} photo(s)</small></td>
                     <td>${m.axis_config}</td>
                     <td>${(m.spindle_speed_rpm||0).toLocaleString()} RPM</td>
-                    <td>$${(m.base_price_usd||0).toLocaleString()}</td>
+                    <td>${priceText}</td>
                     <td><span class="badge ${bc}">${bt}</span></td>
                     <td class="action-cell">
                         <button class="action-btn edit-btn" onclick="editMachine('${m.machine_id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
@@ -159,17 +179,19 @@ async function loadMachines() {
 // ─── Form Submit ────────────────────────────────────────────────────
 machineForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const isQuery = isQueryPriceCheckbox ? isQueryPriceCheckbox.checked : false;
     const payload = {
         name: document.getElementById('m-name').value,
         description: document.getElementById('m-desc').value,
         axis_config: document.getElementById('m-axis').value,
         spindle_speed_rpm: parseInt(document.getElementById('m-spindle').value),
         max_footprint_sqft: parseInt(document.getElementById('m-footprint').value),
-        base_price_usd: parseInt(document.getElementById('m-price').value),
+        base_price_usd: isQuery ? 0 : parseInt(document.getElementById('m-price').value || 0),
         tooling_kit: document.getElementById('m-tooling').value,
         stock_status: document.getElementById('m-stock').value,
         image_data: uploadedImages.length > 0 ? uploadedImages[0] : null,
         images: uploadedImages,
+        is_query_for_price: isQuery,
         // Extended specs
         work_radius_mm: parseInt(document.getElementById('m-radius').value) || null,
         table_size: document.getElementById('m-table').value || null,
@@ -205,7 +227,15 @@ async function editMachine(machineId) {
     document.getElementById('m-axis').value = m.axis_config || '3-Axis Standard';
     document.getElementById('m-spindle').value = m.spindle_speed_rpm || '';
     document.getElementById('m-footprint').value = m.max_footprint_sqft || '';
-    document.getElementById('m-price').value = m.base_price_usd || '';
+    
+    const isQuery = m.is_query_for_price || false;
+    if (isQueryPriceCheckbox) {
+        isQueryPriceCheckbox.checked = isQuery;
+        priceInput.disabled = isQuery;
+        priceInput.required = !isQuery;
+    }
+    document.getElementById('m-price').value = isQuery ? '' : (m.base_price_usd || '');
+
     document.getElementById('m-tooling').value = m.tooling_kit || '';
     document.getElementById('m-stock').value = m.stock_status || 'in_stock';
     // Extended specs
@@ -242,6 +272,13 @@ function resetMachineForm() {
     editingMachineId = null;
     formTitle.textContent = 'Add New Machine';
     cancelEditBtn.classList.add('hidden');
+    
+    if (isQueryPriceCheckbox) {
+        isQueryPriceCheckbox.checked = false;
+        priceInput.disabled = false;
+        priceInput.required = true;
+    }
+
     uploadedImages = [];
     renderThumbnails();
     uploadZone.querySelector('.upload-text').textContent = 'Drag & drop images here, or click to browse';

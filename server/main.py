@@ -39,11 +39,12 @@ class MachineCreate(BaseModel):
     axis_config: str
     spindle_speed_rpm: int
     max_footprint_sqft: int
-    base_price_usd: int
+    base_price_usd: Optional[int] = 0
     tooling_kit: str
     stock_status: str
     image_data: Optional[str] = None
     images: Optional[List[str]] = []
+    is_query_for_price: Optional[bool] = False
     # Extended specs
     work_radius_mm: Optional[int] = None
     table_size: Optional[str] = None
@@ -65,6 +66,7 @@ class MachineUpdate(BaseModel):
     stock_status: Optional[str] = None
     image_data: Optional[str] = None
     images: Optional[List[str]] = None
+    is_query_for_price: Optional[bool] = False
     work_radius_mm: Optional[int] = None
     table_size: Optional[str] = None
     max_workpiece_weight_kg: Optional[int] = None

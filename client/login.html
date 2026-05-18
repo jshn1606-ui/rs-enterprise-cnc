@@ -341,7 +341,14 @@
                         </div>
                         <div class="form-group"><label>Description</label><textarea id="m-desc" class="glass-input glass-textarea" placeholder="Detailed machine description..." required></textarea></div>
                         <div class="form-row">
-                            <div class="form-group"><label>Base Price (USD)</label><input type="number" id="m-price" class="glass-input" placeholder="185000" required></div>
+                            <div class="form-group">
+                                <label>Base Price (USD)</label>
+                                <input type="number" id="m-price" class="glass-input" placeholder="185000" required>
+                                <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+                                    <input type="checkbox" id="m-is-query-price" style="width: 16px; height: 16px; cursor: pointer;">
+                                    <label for="m-is-query-price" style="margin: 0; font-size: 0.8rem; color: #00e6f2; font-weight: 600; cursor: pointer;">Query for Price (Hides price display)</label>
+                                </div>
+                            </div>
                             <div class="form-group"><label>Stock Status</label>
                                 <select id="m-stock" class="glass-input" required>
                                     <option value="in_stock">In Stock</option>
