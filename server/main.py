@@ -467,6 +467,62 @@ def send_email_notification(subject: str, body: str):
     except Exception as e:
         print(f"Failed to send email notification to {recipient}: {e}")
 
+@app.get("/api/diagnostics/email")
+async def test_email_diagnostics():
+    recipient = "jashansohal2008@gmail.com"
+    details = {
+        "smtp_server": SMTP_SERVER,
+        "smtp_port": SMTP_PORT,
+        "smtp_user": SMTP_USER,
+        "has_pass": SMTP_PASS is not None and len(SMTP_PASS) > 0,
+        "pass_length": len(SMTP_PASS) if SMTP_PASS else 0
+    }
+    
+    if not SMTP_USER or not SMTP_PASS:
+        return {
+            "status": "error",
+            "message": "SMTP_USER or SMTP_PASS environment variables are missing on Render.",
+            "details": details
+        }
+        
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = SMTP_USER
+        msg['To'] = recipient
+        msg['Subject'] = "🛠️ RS Enterprise CNC - SMTP Connection Diagnostics Test"
+        
+        body = f"""
+        <html>
+        <body style="font-family: sans-serif; color: #333; line-height: 1.6;">
+            <h3>SMTP Connection Diagnostics Test</h3>
+            <p>If you are reading this, your Render env credentials are working perfectly!</p>
+            <p><strong>Sender:</strong> {SMTP_USER}</p>
+            <p><strong>Server:</strong> {SMTP_SERVER}:{SMTP_PORT}</p>
+        </body>
+        </html>
+        """
+        msg.attach(MIMEText(body, 'html'))
+        
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10)
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASS)
+        server.sendmail(SMTP_USER, recipient, msg.as_string())
+        server.quit()
+        
+        return {
+            "status": "success",
+            "message": f"SMTP test succeeded! Check the inbox of {recipient}.",
+            "details": details
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "message": f"SMTP connection failed: {str(e)}",
+            "traceback": traceback.format_exc(),
+            "details": details
+        }
+
 # ─── Configurator (Dynamic) ─────────────────────────────────────────
 
 @app.post("/api/configure")
