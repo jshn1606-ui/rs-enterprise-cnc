@@ -7,6 +7,163 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Ticket Detail Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 15, 30, 0.75);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .glass-modal {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            width: 600px;
+            max-width: 90%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+        }
+        @keyframes modalSlide {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.75rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .modal-close:hover {
+            color: #ff5252;
+        }
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .modal-section-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .modal-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .modal-field.full-width {
+            grid-column: 1 / -1;
+        }
+        .modal-field label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+        .detail-value {
+            font-size: 0.95rem;
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+        }
+        .detail-value.link-value {
+            color: var(--accent-blue);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .detail-value.link-value:hover {
+            color: var(--accent-orange);
+            text-decoration: underline;
+        }
+        .detail-value.code-value {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: var(--accent-orange);
+        }
+        .detail-value-textarea {
+            font-size: 0.95rem;
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.75rem;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            margin: 0;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .detail-images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.25rem;
+        }
+        .detail-image-card {
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            height: 100px;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .detail-image-card:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-blue);
+        }
+        .detail-image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .modal-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: flex-end;
+        }
+    </style>
 </head>
 <body>
     <div class="mesh-background"></div>
@@ -19,7 +176,7 @@
                 <a href="index.html" class="nav-link">Home</a>
                 <a href="about.html" class="nav-link">About</a>
                 <a href="machines.html" class="nav-link">Machines</a>
-                <a href="configurator.html" class="nav-link">Configurator</a>
+                <a href="maintenance.html" class="nav-link">CNC Machine Maintenance</a>
                 <a href="contact.html" class="nav-link">Contact</a>
                 <a href="login.html" class="nav-link btn-nav active">Admin</a>
             </nav>
@@ -88,7 +245,7 @@
                     <i class="fa-solid fa-plus-circle"></i> Add / Edit
                 </button>
                 <button class="admin-tab" data-tab="tab-leads">
-                    <i class="fa-solid fa-inbox"></i> Leads & CRM
+                    <i class="fa-solid fa-screwdriver-wrench"></i> Maintenance Hub
                 </button>
                 <button class="admin-tab" data-tab="tab-settings">
                     <i class="fa-solid fa-sliders"></i> AI Tuning
@@ -104,30 +261,30 @@
                         <div class="stat-card-label">Total Machines</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-card-icon" style="color: var(--accent-orange);"><i class="fa-solid fa-inbox"></i></div>
+                        <div class="stat-card-icon" style="color: var(--accent-orange);"><i class="fa-solid fa-ticket"></i></div>
                         <div class="stat-card-value" id="stat-leads">—</div>
-                        <div class="stat-card-label">Total Leads</div>
+                        <div class="stat-card-label">Active Tickets</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-card-icon" style="color: #00e676;"><i class="fa-solid fa-dollar-sign"></i></div>
+                        <div class="stat-card-icon" style="color: #ff5252;"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <div class="stat-card-value" id="stat-pipeline">—</div>
-                        <div class="stat-card-label">Pipeline Value</div>
+                        <div class="stat-card-label">Urgent Requests</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-card-icon" style="color: #ffc107;"><i class="fa-solid fa-fire"></i></div>
+                        <div class="stat-card-icon" style="color: #ffc107;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
                         <div class="stat-card-value" id="stat-popular">—</div>
-                        <div class="stat-card-label">Most Requested</div>
+                        <div class="stat-card-label">Primary Failure</div>
                     </div>
                 </div>
 
                 <!-- Lead Status Breakdown -->
                 <div class="glass-form" style="margin-top: 2rem;">
-                    <h3 style="color: var(--accent-blue); margin-bottom: 1.5rem;"><i class="fa-solid fa-funnel-dollar"></i> Lead Pipeline Breakdown</h3>
+                    <h3 style="color: var(--accent-blue); margin-bottom: 1.5rem;"><i class="fa-solid fa-wrench"></i> Repair Ticket Status Breakdown</h3>
                     <div class="pipeline-bars" id="pipeline-bars">
                         <div class="pipeline-row"><span class="pipeline-label">New Requests</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-new" id="pipe-new" style="width:0%"></div></div><span class="pipeline-count" id="pipe-new-n">0</span></div>
-                        <div class="pipeline-row"><span class="pipeline-label">In Contact</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-contact" id="pipe-contact" style="width:0%"></div></div><span class="pipeline-count" id="pipe-contact-n">0</span></div>
-                        <div class="pipeline-row"><span class="pipeline-label">Quote Sent</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-quote" id="pipe-quote" style="width:0%"></div></div><span class="pipeline-count" id="pipe-quote-n">0</span></div>
-                        <div class="pipeline-row"><span class="pipeline-label">Won</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-won" id="pipe-won" style="width:0%"></div></div><span class="pipeline-count" id="pipe-won-n">0</span></div>
+                        <div class="pipeline-row"><span class="pipeline-label">Diagnostic</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-contact" id="pipe-contact" style="width:0%"></div></div><span class="pipeline-count" id="pipe-contact-n">0</span></div>
+                        <div class="pipeline-row"><span class="pipeline-label">In Progress</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-quote" id="pipe-quote" style="width:0%"></div></div><span class="pipeline-count" id="pipe-quote-n">0</span></div>
+                        <div class="pipeline-row"><span class="pipeline-label">Resolved</span><div class="pipeline-bar-track"><div class="pipeline-bar pipeline-won" id="pipe-won" style="width:0%"></div></div><span class="pipeline-count" id="pipe-won-n">0</span></div>
                     </div>
                 </div>
             </div>
@@ -159,9 +316,11 @@
 
             <!-- ── TAB 3: Add / Edit Machine ── -->
             <div class="tab-panel hidden" id="tab-add-machine">
-                <div class="glass-form" style="max-width:800px;margin:0 auto;">
+                <div class="glass-form" style="max-width:850px;margin:0 auto;">
                     <h2 id="form-title" style="margin-bottom:2rem;color:var(--accent-blue);">Add New Machine</h2>
                     <form id="machine-form">
+                        <!-- Basic Info -->
+                        <h3 class="form-section-title"><i class="fa-solid fa-info-circle"></i> Basic Information</h3>
                         <div class="form-row">
                             <div class="form-group"><label>Machine Name</label><input type="text" id="m-name" class="glass-input" placeholder="RS-Titan 5X-Pro" required></div>
                             <div class="form-group"><label>Axis Configuration</label>
@@ -175,10 +334,6 @@
                         </div>
                         <div class="form-group"><label>Description</label><textarea id="m-desc" class="glass-input glass-textarea" placeholder="Detailed machine description..." required></textarea></div>
                         <div class="form-row">
-                            <div class="form-group"><label>Spindle Speed (RPM)</label><input type="number" id="m-spindle" class="glass-input" placeholder="24000" required></div>
-                            <div class="form-group"><label>Max Footprint (sq ft)</label><input type="number" id="m-footprint" class="glass-input" placeholder="200" required></div>
-                        </div>
-                        <div class="form-row">
                             <div class="form-group"><label>Base Price (USD)</label><input type="number" id="m-price" class="glass-input" placeholder="185000" required></div>
                             <div class="form-group"><label>Stock Status</label>
                                 <select id="m-stock" class="glass-input" required>
@@ -188,17 +343,43 @@
                                 </select>
                             </div>
                         </div>
+
+                        <!-- Technical Specs -->
+                        <h3 class="form-section-title" style="margin-top:2rem;"><i class="fa-solid fa-microchip"></i> Technical Specifications</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>Spindle Speed (RPM)</label><input type="number" id="m-spindle" class="glass-input" placeholder="24000" required></div>
+                            <div class="form-group"><label>Max Footprint (sq ft)</label><input type="number" id="m-footprint" class="glass-input" placeholder="200" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Work Radius (mm)</label><input type="number" id="m-radius" class="glass-input" placeholder="650"></div>
+                            <div class="form-group"><label>Table Size</label><input type="text" id="m-table" class="glass-input" placeholder="800 × 500 mm"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Max Workpiece Weight (kg)</label><input type="number" id="m-weight" class="glass-input" placeholder="500"></div>
+                            <div class="form-group"><label>Rapid Traverse Rate</label><input type="text" id="m-traverse" class="glass-input" placeholder="36 m/min"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Positional Accuracy</label><input type="text" id="m-accuracy" class="glass-input" placeholder="±0.005 mm"></div>
+                            <div class="form-group"><label>Power Rating (kW)</label><input type="number" id="m-power" class="glass-input" placeholder="22" step="0.1"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Controller Type</label><input type="text" id="m-controller" class="glass-input" placeholder="FANUC 31i / Siemens 840D"></div>
+                            <div class="form-group"><label>Coolant System</label><input type="text" id="m-coolant" class="glass-input" placeholder="Through-spindle 70 bar"></div>
+                        </div>
                         <div class="form-group"><label>Tooling Kit</label><input type="text" id="m-tooling" class="glass-input" placeholder="Titanium/Steel High-Yield End Mills" required></div>
+
+                        <!-- Multi-Image Upload -->
+                        <h3 class="form-section-title" style="margin-top:2rem;"><i class="fa-solid fa-images"></i> Machine Photos (Multiple)</h3>
                         <div class="form-group">
-                            <label>Machine Image</label>
                             <div class="upload-zone" id="upload-zone">
                                 <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                                <span class="upload-text">Drag & drop image here, or click to browse</span>
-                                <span class="upload-hint">PNG, JPG up to 5MB</span>
+                                <span class="upload-text">Drag & drop images here, or click to browse</span>
+                                <span class="upload-hint">PNG, JPG up to 5MB each · Add up to 10 photos</span>
                             </div>
-                            <input type="file" id="image-input" accept="image/*" style="display:none;">
-                            <img id="image-preview" class="image-preview hidden" alt="Preview">
+                            <input type="file" id="image-input" accept="image/*" multiple style="display:none;">
+                            <div id="image-thumbnails" class="image-thumbnails-grid"></div>
                         </div>
+
                         <div class="form-actions">
                             <button type="submit" class="btn-primary" style="border:none;flex:1;justify-content:center;cursor:pointer;"><i class="fa-solid fa-save"></i> Save Machine</button>
                             <button type="button" id="cancel-edit-btn" class="btn-secondary hidden" style="flex:0 0 auto;cursor:pointer;">Cancel Edit</button>
@@ -207,24 +388,23 @@
                 </div>
             </div>
 
-            <!-- ── TAB 4: Leads & CRM ── -->
+            <!-- ── TAB 4: Maintenance Hub ── -->
             <div class="tab-panel hidden" id="tab-leads">
-                <h2 style="margin-bottom:1.5rem;color:var(--accent-blue);"><i class="fa-solid fa-inbox"></i> Configurator Leads</h2>
+                <h2 style="margin-bottom:1.5rem;color:var(--accent-blue);"><i class="fa-solid fa-screwdriver-wrench"></i> Repair Tickets</h2>
                 <div class="leads-container">
                     <table class="leads-table">
                         <thead>
                             <tr>
-                                <th>Industry</th>
-                                <th>Material</th>
-                                <th>Axes</th>
-                                <th>Footprint</th>
-                                <th>Cycle Time</th>
+                                <th>Client / Company</th>
+                                <th>Machine Model</th>
+                                <th>Issue Category</th>
+                                <th>Urgency</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="leads-tbody">
-                            <tr><td colspan="7" class="empty-state">Loading leads...</td></tr>
+                            <tr><td colspan="6" class="empty-state">Loading tickets...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -234,7 +414,7 @@
             <div class="tab-panel hidden" id="tab-settings">
                 <div class="glass-form" style="max-width:800px;">
                     <h2 style="color:var(--accent-orange);margin-bottom:0.5rem;"><i class="fa-solid fa-brain"></i> Antigravity AI Parameter Tuning</h2>
-                    <p style="color:var(--text-muted);margin-bottom:2rem;">Changes apply instantly to all new configurator calculations on the live site.</p>
+                    <p style="color:var(--text-muted);margin-bottom:2rem;">Changes apply instantly to all new AI Pre-Diagnosis calculations on the live site.</p>
                     <form id="settings-form">
                         <h3 style="color:var(--accent-blue);margin-bottom:1rem;font-size:1rem;text-transform:uppercase;letter-spacing:1px;">ROI Defaults</h3>
                         <div class="form-row">
@@ -263,6 +443,67 @@
 
         </section>
     </main>
+
+    <!-- ── Ticket Detail Modal ── -->
+    <div id="ticket-detail-modal" class="modal-overlay hidden">
+        <div class="glass-modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-screwdriver-wrench"></i> Repair Ticket Details</h3>
+                <button class="modal-close" onclick="closeTicketModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section-row">
+                    <div class="modal-field">
+                        <label>Company / Client</label>
+                        <span id="detail-client-name" class="detail-value">—</span>
+                    </div>
+                    <div class="modal-field">
+                        <label>Urgency Level</label>
+                        <span id="detail-urgency" class="detail-value">—</span>
+                    </div>
+                </div>
+                <div class="modal-section-row">
+                    <div class="modal-field">
+                        <label>Contact Email</label>
+                        <a id="detail-email" href="#" class="detail-value link-value">—</a>
+                    </div>
+                    <div class="modal-field">
+                        <label>Contact Phone</label>
+                        <span id="detail-phone" class="detail-value">—</span>
+                    </div>
+                </div>
+                <div class="modal-section-row">
+                    <div class="modal-field">
+                        <label>Machine Model</label>
+                        <span id="detail-machine-model" class="detail-value">—</span>
+                    </div>
+                    <div class="modal-field">
+                        <label>Issue Category</label>
+                        <span id="detail-issue-category" class="detail-value">—</span>
+                    </div>
+                </div>
+                <div class="modal-section-row" id="detail-error-code-container">
+                    <div class="modal-field">
+                        <label>Controller Error Code</label>
+                        <span id="detail-error-code" class="detail-value code-value">—</span>
+                    </div>
+                </div>
+                <div class="modal-field full-width">
+                    <label>Problem Description</label>
+                    <p id="detail-description" class="detail-value-textarea">—</p>
+                </div>
+                <div class="modal-field full-width" id="detail-images-container">
+                    <label>Attached Component Images</label>
+                    <div id="detail-images-grid" class="detail-images-grid">
+                        <!-- Attached images will render here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeTicketModal()">Close</button>
+            </div>
+        </div>
+    </div>
 
     <footer class="glass-footer">
         <div class="footer-container">

@@ -18,7 +18,7 @@
                 <a href="index.html" class="nav-link">Home</a>
                 <a href="about.html" class="nav-link">About</a>
                 <a href="machines.html" class="nav-link active">Machines</a>
-                <a href="configurator.html" class="nav-link">Configurator</a>
+                <a href="maintenance.html" class="nav-link">CNC Machine Maintenance</a>
                 <a href="contact.html" class="nav-link">Contact</a>
                 <a href="login.html" class="nav-link btn-nav">Admin</a>
             </nav>
@@ -130,7 +130,7 @@
                         </div>
                         <div class="catalog-card-footer">
                             <span class="catalog-price">$${(m.base_price_usd || 0).toLocaleString()}</span>
-                            <a href="configurator.html" class="btn-primary" style="font-size:0.85rem;padding:0.5rem 1.2rem;border:none;">Configure <i class="fa-solid fa-arrow-right"></i></a>
+                            <a href="maintenance.html?machine=${encodeURIComponent(m.name)}" class="btn-primary" style="font-size:0.85rem;padding:0.5rem 1.2rem;border:none;">Request Repair <i class="fa-solid fa-wrench"></i></a>
                         </div>
                     </div>
                 `;
