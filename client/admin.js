@@ -321,23 +321,30 @@ async function loadLeads() {
                 const clientName = ticket.client_name || 'N/A';
                 const machineModel = ticket.machine_model || 'N/A';
                 const issueCategory = ticket.issue_category || 'N/A';
-                const urgency = ticket.urgency || 'Low';
+                const contactEmail = ticket.contact_email || '';
+                const contactPhone = ticket.contact_phone || '';
                 const tid = ticket._id;
 
-                // Color urgency badges beautifully!
-                const urgencyBadgeClass = urgency === 'High' ? 'badge-outofstock' : urgency === 'Medium' ? 'badge-special' : 'badge-instock';
+                // Category Badges
+                const isQuery = issueCategory.toLowerCase().includes('inquiry');
+                const catBadgeClass = isQuery ? 'badge-special' : 'badge-instock';
 
                 tr.innerHTML = `
                     <td><strong>${clientName}</strong></td>
-                    <td>${machineModel}</td>
-                    <td>${issueCategory}</td>
-                    <td><span class="badge ${urgencyBadgeClass}">${urgency}</span></td>
+                    <td><span style="color:var(--accent-blue); font-weight:600;">${machineModel}</span></td>
+                    <td><span class="badge ${catBadgeClass}">${issueCategory}</span></td>
+                    <td>
+                        <div style="font-size:0.85rem;">
+                            <a href="mailto:${contactEmail}" style="color:#00e6f2;text-decoration:none;display:block;"><i class="fa-solid fa-envelope" style="font-size:0.75rem;margin-right:4px;"></i>${contactEmail}</a>
+                            <span style="color:var(--text-muted);display:block;margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:0.75rem;margin-right:4px;"></i>${contactPhone}</span>
+                        </div>
+                    </td>
                     <td>
                         <select class="lead-status-select" onchange="updateTicketStatus('${tid}', this.value)">
-                            <option value="new" ${status==='new'?'selected':''}>🟡 New</option>
-                            <option value="in_diagnostic" ${status==='in_diagnostic'?'selected':''}>🔵 Diagnostic</option>
-                            <option value="in_progress" ${status==='in_progress'?'selected':''}>🟠 In Progress</option>
-                            <option value="resolved" ${status==='resolved'?'selected':''}>🟢 Resolved</option>
+                            <option value="new" ${status==='new'?'selected':''}>🟡 New Lead</option>
+                            <option value="in_diagnostic" ${status==='in_diagnostic'?'selected':''}>🔵 Contacted</option>
+                            <option value="in_progress" ${status==='in_progress'?'selected':''}>🟠 Negotiation</option>
+                            <option value="resolved" ${status==='resolved'?'selected':''}>🟢 Closed Won</option>
                             <option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option>
                         </select>
                     </td>
@@ -347,8 +354,8 @@ async function loadLeads() {
                     </td>`;
                 leadsBody.appendChild(tr);
             });
-        } else { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state">No repair tickets yet.</td></tr>'; }
-    } catch (err) { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state error-state">Error loading tickets.</td></tr>'; }
+        } else { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state">No inquiries received yet.</td></tr>'; }
+    } catch (err) { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state error-state">Error loading inquiries.</td></tr>'; }
 }
 
 async function updateTicketStatus(tid, s) { 
@@ -391,7 +398,7 @@ function viewTicketDetail(tid) {
 
     const emailEl = document.getElementById('detail-email');
     emailEl.textContent = ticket.contact_email || 'N/A';
-    emailEl.href = `mailto:${ticket.contact_email}?subject=RS Enterprise CNC Repair Request`;
+    emailEl.href = `mailto:${ticket.contact_email}?subject=RS Enterprise B2B Lead Inquiry Response`;
     
     document.getElementById('detail-phone').textContent = ticket.contact_phone || 'N/A';
     document.getElementById('detail-machine-model').textContent = ticket.machine_model || 'N/A';
