@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Header, HTTPException
+from fastapi import FastAPI, Request, Header, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -8,6 +8,9 @@ import pymongo
 import uuid
 import csv
 import io
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
 app = FastAPI(title="RS Enterprise Antigravity Backend")
@@ -432,16 +435,74 @@ async def update_settings(settings: ROISettings, authorization: Optional[str] = 
     settings_collection.update_one({}, {"$set": settings.dict()}, upsert=True)
     return {"status": "success"}
 
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASS = os.getenv("SMTP_PASS")
+
+def send_email_notification(subject: str, body: str):
+    recipient = "jashansohal2008@gmail.com"
+    if not SMTP_USER or not SMTP_PASS:
+        print(f"==================================================")
+        print(f"NOTIFICATION DISPATCH (OFFLINE / NO SMTP CREDENTIALS)")
+        print(f"Recipient: {recipient}")
+        print(f"Subject: {subject}")
+        print(f"Body Preview:\n{body[:500]}...")
+        print(f"==================================================")
+        return
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = SMTP_USER
+        msg['To'] = recipient
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'html'))
+
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASS)
+        server.sendmail(SMTP_USER, recipient, msg.as_string())
+        server.quit()
+        print(f"Successfully sent email notification to {recipient}!")
+    except Exception as e:
+        print(f"Failed to send email notification to {recipient}: {e}")
+
 # ─── Configurator (Dynamic) ─────────────────────────────────────────
 
 @app.post("/api/configure")
-async def configure_machine(req: ConfigureRequest):
+async def configure_machine(req: ConfigureRequest, background_tasks: BackgroundTasks):
     if db_connected and leads_collection is not None:
         try:
             doc = req.dict()
             doc["status"] = "new"
             doc["created_at"] = datetime.utcnow().isoformat()
             leads_collection.insert_one(doc)
+            
+            # Send email alert asynchronously in the background
+            subject = f"🚨 New CNC Sale & Configuration Query from {req.client_profile.get('company_name', 'N/A')}"
+            body = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <h2 style="color: #00e676; border-bottom: 2px solid #00e676; padding-bottom: 10px; margin-top: 0;">New CNC Sale & Configuration Query</h2>
+                    <p><strong>Company Name:</strong> {req.client_profile.get('company_name', 'N/A')}</p>
+                    <p><strong>Contact Person:</strong> {req.client_profile.get('contact_name', 'N/A')}</p>
+                    <p><strong>Email Address:</strong> {req.client_profile.get('contact_email', 'N/A')}</p>
+                    <p><strong>Phone Number:</strong> {req.client_profile.get('contact_phone', 'N/A')}</p>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                    <h3 style="color: #1a202c;">Technical Specifications:</h3>
+                    <ul>
+                        <li><strong>Required Axes:</strong> {req.technical_requirements.get('required_axes', '3')}-Axis</li>
+                        <li><strong>Target Cycle Time:</strong> {req.technical_requirements.get('target_cycle_time_mins', 'N/A')} mins</li>
+                        <li><strong>Workpiece Material:</strong> {req.technical_requirements.get('workpiece_material', 'N/A')}</li>
+                        <li><strong>Monthly Production Volume:</strong> {req.technical_requirements.get('monthly_volume', 'N/A')} units/month</li>
+                    </ul>
+                    <p style="font-size: 0.8rem; color: #a0aec0; margin-top: 30px; text-align: center;">Notification automatically dispatched by Antigravity AI.</p>
+                </div>
+            </body>
+            </html>
+            """
+            background_tasks.add_task(send_email_notification, subject, body)
         except Exception as e:
             print(f"Failed to save lead: {e}")
 
@@ -484,16 +545,45 @@ async def configure_machine(req: ConfigureRequest):
 # ─── Maintenance (Repair Tickets) ───────────────────────────────────
 
 @app.post("/api/maintenance")
-async def create_maintenance_ticket(req: MaintenanceRequest):
+async def create_maintenance_ticket(req: MaintenanceRequest, background_tasks: BackgroundTasks):
     if db_connected and maintenance_collection is not None:
         try:
             doc = req.dict()
             doc["status"] = "new"
             doc["created_at"] = datetime.utcnow().isoformat()
             maintenance_collection.insert_one(doc)
+            
+            # Send email alert asynchronously in the background
+            subject = f"🛠️ New CNC Maintenance Ticket: {req.urgency} Urgency from {req.client_name}"
+            body = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <h2 style="color: #ff5252; border-bottom: 2px solid #ff5252; padding-bottom: 10px; margin-top: 0;">New CNC Maintenance & Repair Query</h2>
+                    <p><strong>Company / Client Name:</strong> {req.client_name}</p>
+                    <p><strong>Contact Email:</strong> {req.contact_email}</p>
+                    <p><strong>Contact Phone:</strong> {req.contact_phone}</p>
+                    <p><strong>Machine Model:</strong> {req.machine_model}</p>
+                    <p><strong>Issue Category:</strong> {req.issue_category}</p>
+                    <p><strong>Urgency Level:</strong> <span style="font-weight: bold; color: {'#ff5252' if req.urgency == 'High' else '#ffc107' if req.urgency == 'Medium' else '#00e676'};">{req.urgency}</span></p>
+                    <p><strong>Controller Error Code:</strong> {req.error_code or 'None'}</p>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                    <h3 style="color: #1a202c;">Description of Symptoms:</h3>
+                    <p style="background: #f7fafc; padding: 12px; border-radius: 6px; border-left: 4px solid #ff5252; font-family: monospace; white-space: pre-wrap;">{req.description}</p>
+                    <p style="font-size: 0.8rem; color: #a0aec0; margin-top: 30px; text-align: center;">Notification automatically dispatched by Antigravity AI.</p>
+                </div>
+            </body>
+            </html>
+            """
+            background_tasks.add_task(send_email_notification, subject, body)
             return {"status": "success", "message": "Repair ticket submitted successfully."}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to save ticket: {e}")
+            
+    # Send email alert in background for offline/demo submissions too
+    subject = f"🛠️ [Local Demo] CNC Maintenance Ticket from {req.client_name}"
+    body = f"Client: {req.client_name}<br>Urgency: {req.urgency}<br>Description: {req.description}"
+    background_tasks.add_task(send_email_notification, subject, body)
     return {"status": "success", "message": "Demo submission received successfully (Offline/Local)."}
 
 @app.get("/")
