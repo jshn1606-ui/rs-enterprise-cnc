@@ -253,9 +253,7 @@
                 <button class="admin-tab" data-tab="tab-repairs">
                     <i class="fa-solid fa-screwdriver-wrench"></i> Machine Repairs
                 </button>
-                <button class="admin-tab" data-tab="tab-settings">
-                    <i class="fa-solid fa-sliders"></i> AI Tuning
-                </button>
+
                 <button class="admin-tab" data-tab="tab-system-config">
                     <i class="fa-solid fa-gears"></i> System Config
                 </button>
@@ -447,37 +445,6 @@
                             <tr><td colspan="7" class="empty-state">Loading repair tickets...</td></tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
-
-            <!-- ── TAB 5: AI Tuning ── -->
-            <div class="tab-panel hidden" id="tab-settings">
-                <div class="glass-form" style="max-width:800px;">
-                    <h2 style="color:var(--accent-orange);margin-bottom:0.5rem;"><i class="fa-solid fa-brain"></i> Antigravity AI Parameter Tuning</h2>
-                    <p style="color:var(--text-muted);margin-bottom:2rem;">Changes apply instantly to all new AI Pre-Diagnosis calculations on the live site.</p>
-                    <form id="settings-form">
-                        <h3 style="color:var(--accent-blue);margin-bottom:1rem;font-size:1rem;text-transform:uppercase;letter-spacing:1px;">ROI Defaults</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Default Payback (Months)</label><input type="number" id="s-payback" class="glass-input" value="14" required></div>
-                            <div class="form-group"><label>Annual Savings (USD)</label><input type="number" id="s-savings" class="glass-input" value="42000" required></div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group"><label>Efficiency Gain (%)</label><input type="number" id="s-efficiency" class="glass-input" value="18.5" step="0.1" required></div>
-                            <div class="form-group"><label>Cycle Time Reduction Factor</label><input type="number" id="s-cycle" class="glass-input" value="0.9" step="0.01" required></div>
-                        </div>
-                        <h3 style="color:var(--accent-blue);margin:2rem 0 1rem;font-size:1rem;text-transform:uppercase;letter-spacing:1px;">Ludhiana Cost Parameters</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Electricity Cost (₹/kWh)</label><input type="number" id="s-electricity" class="glass-input" value="8.5" step="0.1" required></div>
-                            <div class="form-group"><label>Operator Hourly Wage (₹)</label><input type="number" id="s-wage" class="glass-input" value="350" required></div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group"><label>Tooling Wear Rate (%)</label><input type="number" id="s-tooling-wear" class="glass-input" value="2.5" step="0.1" required></div>
-                            <div class="form-group"></div>
-                        </div>
-                        <button type="submit" class="btn-primary" style="border:none;width:100%;justify-content:center;cursor:pointer;">
-                            <i class="fa-solid fa-save"></i> Save & Recalibrate
-                        </button>
-                    </form>
                 </div>
             </div>
 

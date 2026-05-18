@@ -18,7 +18,6 @@ const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const imageInput = document.getElementById('image-input');
 const uploadZone = document.getElementById('upload-zone');
 const thumbnailsGrid = document.getElementById('image-thumbnails');
-const settingsForm = document.getElementById('settings-form');
 const isQueryPriceCheckbox = document.getElementById('m-is-query-price');
 const priceInput = document.getElementById('m-price');
 
@@ -589,16 +588,6 @@ async function loadSettings() {
     }
 
     const s = currentSettings;
-    
-    // ROI Defaults
-    document.getElementById('s-payback').value = s.default_payback_months;
-    document.getElementById('s-savings').value = s.default_annual_savings_usd;
-    document.getElementById('s-efficiency').value = s.efficiency_gain_percent;
-    document.getElementById('s-cycle').value = s.cycle_time_reduction_factor;
-    document.getElementById('s-electricity').value = s.electricity_cost_per_kwh;
-    document.getElementById('s-wage').value = s.operator_hourly_wage_inr;
-    document.getElementById('s-tooling-wear').value = s.tooling_wear_rate_percent;
-
     // System Config Defaults
     document.getElementById('cfg-phone').value = s.phone_number || '';
     document.getElementById('cfg-whatsapp').value = s.whatsapp_number || '';
@@ -609,28 +598,6 @@ async function loadSettings() {
     document.getElementById('cfg-facebook').value = s.facebook_link || '';
     document.getElementById('cfg-channel').value = s.channel_link || '';
 }
-
-settingsForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const payload = {
-        ...currentSettings,
-        default_payback_months: parseInt(document.getElementById('s-payback').value),
-        default_annual_savings_usd: parseInt(document.getElementById('s-savings').value),
-        efficiency_gain_percent: parseFloat(document.getElementById('s-efficiency').value),
-        cycle_time_reduction_factor: parseFloat(document.getElementById('s-cycle').value),
-        electricity_cost_per_kwh: parseFloat(document.getElementById('s-electricity').value),
-        operator_hourly_wage_inr: parseFloat(document.getElementById('s-wage').value),
-        tooling_wear_rate_percent: parseFloat(document.getElementById('s-tooling-wear').value)
-    };
-    try {
-        const res = await fetch(`${API_BASE}/api/settings`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
-        const resData = await res.json();
-        if (resData.status === 'success') {
-            currentSettings = payload;
-            alert('ROI parameters successfully saved and calibrated!');
-        }
-    } catch (err) { alert('Failed to save settings.'); }
-});
 
 if (systemConfigForm) {
     systemConfigForm.addEventListener('submit', async (e) => {
