@@ -461,33 +461,56 @@ let currentSettings = {};
 const systemConfigForm = document.getElementById('system-config-form');
 
 async function loadSettings() {
+    // Pre-initialize currentSettings with baseline configurations to avoid schema mismatch
+    currentSettings = {
+        default_payback_months: 14,
+        default_annual_savings_usd: 42000,
+        efficiency_gain_percent: 18.5,
+        cycle_time_reduction_factor: 0.9,
+        electricity_cost_per_kwh: 8.5,
+        operator_hourly_wage_inr: 350,
+        tooling_wear_rate_percent: 2.5,
+        phone_number: "+91 90507 00577, +91 90507 00511",
+        whatsapp_number: "919050700577",
+        email_address: "contact@webcomsirsa.com",
+        physical_address: "52, Basement, City Photostat, Opposite Town Park, Ludhiana",
+        instagram_link: "https://instagram.com/webcomsirsa",
+        youtube_link: "https://youtube.com/shipramiglani",
+        facebook_link: "https://facebook.com/webcomsirsa",
+        channel_link: "https://whatsapp.com/channel/0029Va9X7Y5B"
+    };
+
     try {
         const res = await fetch(`${API_BASE}/api/settings`, { headers: authHeaders() });
         const data = await res.json();
         if (data.status === 'success' && data.settings) {
-            const s = data.settings;
-            currentSettings = s;
-            
-            // ROI Defaults
-            document.getElementById('s-payback').value = s.default_payback_months || 14;
-            document.getElementById('s-savings').value = s.default_annual_savings_usd || 42000;
-            document.getElementById('s-efficiency').value = s.efficiency_gain_percent || 18.5;
-            document.getElementById('s-cycle').value = s.cycle_time_reduction_factor || 0.9;
-            document.getElementById('s-electricity').value = s.electricity_cost_per_kwh || 8.5;
-            document.getElementById('s-wage').value = s.operator_hourly_wage_inr || 350;
-            document.getElementById('s-tooling-wear').value = s.tooling_wear_rate_percent || 2.5;
-
-            // System Config Defaults
-            document.getElementById('cfg-phone').value = s.phone_number || '';
-            document.getElementById('cfg-whatsapp').value = s.whatsapp_number || '';
-            document.getElementById('cfg-email').value = s.email_address || '';
-            document.getElementById('cfg-address').value = s.physical_address || '';
-            document.getElementById('cfg-instagram').value = s.instagram_link || '';
-            document.getElementById('cfg-youtube').value = s.youtube_link || '';
-            document.getElementById('cfg-facebook').value = s.facebook_link || '';
-            document.getElementById('cfg-channel').value = s.channel_link || '';
+            // Merge database settings over standard defaults
+            currentSettings = { ...currentSettings, ...data.settings };
         }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+        console.warn("Failed to load settings from API, using default parameters:", err);
+    }
+
+    const s = currentSettings;
+    
+    // ROI Defaults
+    document.getElementById('s-payback').value = s.default_payback_months;
+    document.getElementById('s-savings').value = s.default_annual_savings_usd;
+    document.getElementById('s-efficiency').value = s.efficiency_gain_percent;
+    document.getElementById('s-cycle').value = s.cycle_time_reduction_factor;
+    document.getElementById('s-electricity').value = s.electricity_cost_per_kwh;
+    document.getElementById('s-wage').value = s.operator_hourly_wage_inr;
+    document.getElementById('s-tooling-wear').value = s.tooling_wear_rate_percent;
+
+    // System Config Defaults
+    document.getElementById('cfg-phone').value = s.phone_number || '';
+    document.getElementById('cfg-whatsapp').value = s.whatsapp_number || '';
+    document.getElementById('cfg-email').value = s.email_address || '';
+    document.getElementById('cfg-address').value = s.physical_address || '';
+    document.getElementById('cfg-instagram').value = s.instagram_link || '';
+    document.getElementById('cfg-youtube').value = s.youtube_link || '';
+    document.getElementById('cfg-facebook').value = s.facebook_link || '';
+    document.getElementById('cfg-channel').value = s.channel_link || '';
 }
 
 settingsForm.addEventListener('submit', async (e) => {

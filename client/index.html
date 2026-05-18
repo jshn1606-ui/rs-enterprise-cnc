@@ -138,8 +138,10 @@
                             ${imgHtml}
                             <h3>${m.name} <span class="badge ${badgeClass}" style="font-size:0.7rem;vertical-align:middle;">${badgeText}</span></h3>
                             <p>${m.description}</p>
-                            <p style="color:var(--accent-blue);font-size:0.85rem;margin-top:0.8rem;font-weight:600;">
-                                ${m.axis_config} · ${(m.spindle_speed_rpm||0).toLocaleString()} RPM · $${(m.base_price_usd||0).toLocaleString()}
+                            <p style="color:var(--accent-blue);font-size:0.85rem;margin-top:0.8rem;font-weight:600;display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+                                <span>${m.axis_config} · ${(m.spindle_speed_rpm||0).toLocaleString()} RPM</span>
+                                <span>·</span>
+                                <a href="machines.html?inquire=${encodeURIComponent(m.name)}" style="color:#00e6f2; text-decoration:underline; font-weight:bold; display:inline-flex; align-items:center; gap:3px;">Query for Price <i class="fa-solid fa-arrow-right" style="font-size:0.65rem;"></i></a>
                             </p>
                         `;
                         grid.appendChild(card);

@@ -109,21 +109,21 @@ class ContactInquiry(BaseModel):
     message: str
 
 class ROISettings(BaseModel):
-    default_payback_months: int
-    default_annual_savings_usd: int
-    efficiency_gain_percent: float
-    cycle_time_reduction_factor: float
-    electricity_cost_per_kwh: float
-    operator_hourly_wage_inr: float
-    tooling_wear_rate_percent: float
-    phone_number: Optional[str] = None
-    whatsapp_number: Optional[str] = None
-    email_address: Optional[str] = None
-    physical_address: Optional[str] = None
-    instagram_link: Optional[str] = None
-    youtube_link: Optional[str] = None
-    facebook_link: Optional[str] = None
-    channel_link: Optional[str] = None
+    default_payback_months: Optional[int] = 14
+    default_annual_savings_usd: Optional[int] = 42000
+    efficiency_gain_percent: Optional[float] = 18.5
+    cycle_time_reduction_factor: Optional[float] = 0.9
+    electricity_cost_per_kwh: Optional[float] = 8.5
+    operator_hourly_wage_inr: Optional[float] = 350.0
+    tooling_wear_rate_percent: Optional[float] = 2.5
+    phone_number: Optional[str] = "+91 90507 00577, +91 90507 00511"
+    whatsapp_number: Optional[str] = "919050700577"
+    email_address: Optional[str] = "contact@webcomsirsa.com"
+    physical_address: Optional[str] = "52, Basement, City Photostat, Opposite Town Park, Ludhiana"
+    instagram_link: Optional[str] = "https://instagram.com/webcomsirsa"
+    youtube_link: Optional[str] = "https://youtube.com/shipramiglani"
+    facebook_link: Optional[str] = "https://facebook.com/webcomsirsa"
+    channel_link: Optional[str] = "https://whatsapp.com/channel/0029Va9X7Y5B"
 
 
 # ─── Database Connection ─────────────────────────────────────────────
@@ -451,11 +451,112 @@ async def get_settings(authorization: Optional[str] = Header(None)):
     return {"status": "error", "message": "Database not connected"}
 
 @app.put("/api/settings")
-async def update_settings(settings: ROISettings, authorization: Optional[str] = Header(None)):
+async def update_settings(settings: ROISettings, background_tasks: BackgroundTasks, authorization: Optional[str] = Header(None)):
     require_auth(authorization)
     if not db_connected:
         raise HTTPException(status_code=500, detail="Database not connected")
+    
+    # Save parameters to database settings collection
     settings_collection.update_one({}, {"$set": settings.dict()}, upsert=True)
+    
+    # Prepare B2B HTML Change Audit Notification for Admin
+    subject = "⚙️ [RS Enterprise] System Configurations & Settings Updated"
+    
+    body = f"""
+    <html>
+    <body style="font-family: 'Inter', Arial, sans-serif; color: #1a202c; line-height: 1.6; background-color: #f7fafc; padding: 20px 0;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #edf2f7; padding-bottom: 20px;">
+                <span style="font-weight: 800; font-size: 1.5rem; color: #0a0f1e; letter-spacing: 0.5px;">RS <span style="color: #ff5252;">ENTERPRISE</span></span>
+                <div style="font-size: 0.9rem; color: #718096; margin-top: 5px;">Admin Control Center Settings Update Alert</div>
+            </div>
+            
+            <h2 style="color: #ff5252; margin-top: 0; font-size: 1.3rem;">⚙️ Settings Successfully Updated</h2>
+            <p>An administrator has successfully updated the core system configurations and AI tuning parameters. The live website has been updated instantly with these settings.</p>
+            
+            <h3 style="color: #2d3748; border-bottom: 1px solid #edf2f7; padding-bottom: 5px; margin-top: 25px; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.5px;">1. Public Contact Information</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9rem;">
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568; width: 40%;">Phone Number:</td>
+                    <td style="padding: 8px 0; color: #2d3748;">{settings.phone_number or '—'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">WhatsApp Number:</td>
+                    <td style="padding: 8px 0; color: #2d3748;">{settings.whatsapp_number or '—'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Email Address:</td>
+                    <td style="padding: 8px 0; color: #2d3748;">{settings.email_address or '—'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Physical Address:</td>
+                    <td style="padding: 8px 0; color: #2d3748;">{settings.physical_address or '—'}</td>
+                </tr>
+            </table>
+
+            <h3 style="color: #2d3748; border-bottom: 1px solid #edf2f7; padding-bottom: 5px; margin-top: 25px; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.5px;">2. Social & Media Channels</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9rem;">
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568; width: 40%;">Instagram Link:</td>
+                    <td style="padding: 8px 0; color: #2d3748; font-size: 0.8rem;">{settings.instagram_link or '—'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">YouTube Link:</td>
+                    <td style="padding: 8px 0; color: #2d3748; font-size: 0.8rem;">{settings.youtube_link or '—'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Facebook Link:</td>
+                    <td style="padding: 8px 0; color: #2d3748; font-size: 0.8rem;">{settings.facebook_link or '—'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Channel Link (WA/TG):</td>
+                    <td style="padding: 8px 0; color: #2d3748; font-size: 0.8rem;">{settings.channel_link or '—'}</td>
+                </tr>
+            </table>
+
+            <h3 style="color: #2d3748; border-bottom: 1px solid #edf2f7; padding-bottom: 5px; margin-top: 25px; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.5px;">3. AI Pre-Diagnosis Tuning (ROI)</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9rem;">
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568; width: 50%;">Default Payback (Months):</td>
+                    <td style="padding: 8px 0; color: #2d3748;">{settings.default_payback_months} months</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Default Annual Savings (USD):</td>
+                    <td style="padding: 8px 0; color: #2d3748;">${(settings.default_annual_savings_usd or 0):,}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Efficiency Gain:</td>
+                    <td style="padding: 8px 0; color: #2d3748;">{settings.efficiency_gain_percent}%</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Cycle Time Reduction Factor:</td>
+                    <td style="padding: 8px 0; color: #2d3748;">{settings.cycle_time_reduction_factor}x</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Ludhiana Electricity Cost:</td>
+                    <td style="padding: 8px 0; color: #2d3748;">₹{settings.electricity_cost_per_kwh}/kWh</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Operator Hourly Wage:</td>
+                    <td style="padding: 8px 0; color: #2d3748;">₹{settings.operator_hourly_wage_inr}/hr</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f7fafc;">
+                    <td style="padding: 8px 0; font-weight: bold; color: #4a5568;">Tooling Wear Rate:</td>
+                    <td style="padding: 8px 0; color: #2d3748;">{settings.tooling_wear_rate_percent}%</td>
+                </tr>
+            </table>
+            
+            <p style="font-size: 0.75rem; color: #a0aec0; margin-top: 30px; text-align: center; border-top: 1px solid #edf2f7; padding-top: 15px;">
+                Security alert automatically dispatched by Antigravity AI Core.
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+
+    # Dispatch email alerts asynchronously in standard background tasks
+    background_tasks.add_task(send_email, "jashansohal2008@gmail.com", subject, body)
+    
     return {"status": "success"}
 
 @app.get("/api/public/settings")
@@ -532,8 +633,7 @@ def send_via_http_fallback(recipient: str, subject: str, html_body: str, sender_
     except Exception as e:
         return False, str(e)
 
-def send_email_notification(subject: str, body: str):
-    recipient = "jashansohal2008@gmail.com"
+def send_email(recipient: str, subject: str, body: str):
     sender_email = SMTP_USER if SMTP_USER else "rs.enterprise.alerts@gmail.com"
     
     # 1. Try standard SMTP First (if credentials are set)
@@ -550,17 +650,22 @@ def send_email_notification(subject: str, body: str):
             server.login(SMTP_USER, SMTP_PASS)
             server.sendmail(SMTP_USER, recipient, msg.as_string())
             server.quit()
-            print(f"Successfully sent email notification via SMTP to {recipient}!")
-            return
+            print(f"Successfully sent email to {recipient} via SMTP!")
+            return True, "SMTP"
         except Exception as e:
-            print(f"SMTP sending failed ({e}). Attempting secure HTTPS fallback relay...")
+            print(f"SMTP sending to {recipient} failed ({e}). Attempting secure HTTPS fallback relay...")
             
     # 2. HTTPS Webhook Fallback (Bypasses Render's firewall blocks 100% of the time)
     success, err_msg = send_via_http_fallback(recipient, subject, body, sender_email)
     if success:
-        print(f"Successfully delivered email via HTTPS relay fallback to {recipient}!")
+        print(f"Successfully delivered email to {recipient} via HTTPS relay fallback!")
+        return True, "HTTPS Fallback"
     else:
-        print(f"HTTPS fallback also failed: {err_msg}")
+        print(f"HTTPS fallback also failed for {recipient}: {err_msg}")
+        return False, err_msg
+
+def send_email_notification(subject: str, body: str):
+    send_email("jashansohal2008@gmail.com", subject, body)
 
 @app.get("/api/diagnostics/email")
 async def test_email_diagnostics():
@@ -791,7 +896,7 @@ async def create_maintenance_ticket(req: MaintenanceRequest, background_tasks: B
 
 @app.post("/api/inquire")
 async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTasks):
-    # Prepare premium HTML email template
+    # Prepare premium HTML email template for Admin
     subject = f"🛍️ [RS Enterprise] New Machine Purchase Inquiry: {req.machine_name} - {req.company_name}"
     
     body = f"""
@@ -851,6 +956,91 @@ async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTas
     </html>
     """
 
+    # Fetch dynamic contact details from the database settings
+    phone_number = "+91 90507 00577, +91 90507 00511"
+    whatsapp_number = "919050700577"
+    email_address = "contact@webcomsirsa.com"
+    physical_address = "52, Basement, City Photostat, Opposite Town Park, Ludhiana"
+    
+    if db_connected and settings_collection is not None:
+        try:
+            settings = settings_collection.find_one({}, {"_id": 0})
+            if settings:
+                phone_number = settings.get("phone_number", phone_number)
+                whatsapp_number = settings.get("whatsapp_number", whatsapp_number)
+                email_address = settings.get("email_address", email_address)
+                physical_address = settings.get("physical_address", physical_address)
+        except Exception:
+            pass
+
+    # Build B2B Buyer Auto-Reply
+    buyer_subject = f"🛍️ Inquiry Received: {req.machine_name} - RS Enterprise"
+    buyer_body = f"""
+    <html>
+    <body style="font-family: 'Inter', Arial, sans-serif; color: #1a202c; line-height: 1.6; background-color: #f7fafc; padding: 20px 0;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border: 1px solid #edf2f7; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+            <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #edf2f7; padding-bottom: 20px;">
+                <span style="font-weight: 800; font-size: 1.5rem; color: #0a0f1e; letter-spacing: 0.5px;">RS <span style="color: #00e6f2;">ENTERPRISE</span></span>
+                <div style="font-size: 0.9rem; color: #718096; margin-top: 5px;">Certified Pre-Owned & Refurbished CNC Machines</div>
+            </div>
+            
+            <h2 style="color: #00e6f2; margin-top: 0; font-size: 1.3rem;">Dear {req.contact_name},</h2>
+            <p>Thank you for reaching out to RS Enterprise. We have successfully registered your formal purchase inquiry for the premium CNC machine: <strong>{req.machine_name}</strong>.</p>
+            
+            <p>A senior CNC sales engineer from our G.T. Road Ludhiana facility has been assigned to your query. We are currently preparing a comprehensive technical quote, shipping timeline estimates, and precision calibration test records customized to your workshop's needs.</p>
+            
+            <div style="background-color: #f7fafc; border-left: 4px solid #00e6f2; padding: 15px; margin: 20px 0; border-radius: 6px;">
+                <strong style="color: #0a0f1e; display: block; margin-bottom: 5px;">Lead Profile & Inquiry Summary:</strong>
+                <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid #edf2f7;">
+                        <td style="padding: 6px 0; color: #718096; font-weight: 600; width: 35%;">Requested CNC Model:</td>
+                        <td style="padding: 6px 0; color: #1a202c; font-weight: bold;">{req.machine_name}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #edf2f7;">
+                        <td style="padding: 6px 0; color: #718096; font-weight: 600;">Your Company:</td>
+                        <td style="padding: 6px 0; color: #1a202c;">{req.company_name}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #edf2f7;">
+                        <td style="padding: 6px 0; color: #718096; font-weight: 600;">Status:</td>
+                        <td style="padding: 6px 0; color: #00e6f2; font-weight: bold;"><span style="background-color: #00e6f21a; padding: 2px 8px; border-radius: 4px;">Technical Review In Progress</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3 style="color: #2d3748; font-size: 1.1rem; margin-top: 25px;">Rigorous Calibration & Quality Assurance</h3>
+            <p>At RS Enterprise, we ensure all pre-owned CNC routers, gantries, and simultaneous multi-axis mills are thoroughly inspected, cleaned of mechanical slop, retrofitted with modern industrial controllers, and laser-calibrated to original axis tolerances under <strong>0.01mm</strong>.</p>
+            
+            <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 25px 0;">
+            
+            <h3 style="color: #2d3748; font-size: 1.1rem; margin-bottom: 8px;">Direct Hotlines & Spares</h3>
+            <p style="font-size: 0.9rem; color: #718096; margin-top: 0;">Have immediate technical specifications to clarify? Reach our Ludhiana helpdesk directly:</p>
+            <table style="width: 100%; font-size: 0.9rem; color: #4a5568;">
+                <tr>
+                    <td style="padding: 5px 0; font-weight: bold; width: 30%;">Call Center:</td>
+                    <td style="padding: 5px 0; color: #0a0f1e; font-weight: 600;">{phone_number}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px 0; font-weight: bold;">WhatsApp support:</td>
+                    <td style="padding: 5px 0; color: #00e6f2;"><a href="https://wa.me/{whatsapp_number}" style="color: #00e6f2; text-decoration: none; font-weight: 600;">Open Direct Chat <i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px 0; font-weight: bold;">Email desk:</td>
+                    <td style="padding: 5px 0;"><a href="mailto:{email_address}" style="color: #00e6f2; text-decoration: none;">{email_address}</a></td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px 0; font-weight: bold; vertical-align: top;">Primary Yard:</td>
+                    <td style="padding: 5px 0; color: #0a0f1e; line-height: 1.4;">{physical_address}</td>
+                </tr>
+            </table>
+            
+            <p style="font-size: 0.75rem; color: #a0aec0; margin-top: 30px; text-align: center; border-top: 1px solid #edf2f7; padding-top: 15px;">
+                This confirmation was dispatched automatically by Antigravity AI. &copy; 2026 RS Enterprise CNC, Ludhiana.
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+
     # We map this purchase inquiry to a MaintenanceRequest shape inside MongoDB
     # so that it perfectly loads inside the existing Admin dashboard Maintenance Hub!
     db_doc = {
@@ -870,15 +1060,18 @@ async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTas
     if db_connected and maintenance_collection is not None:
         try:
             maintenance_collection.insert_one(db_doc)
-            # Send email alert asynchronously in the background
-            background_tasks.add_task(send_email_notification, subject, body)
+            # Send dynamic notifications asynchronously in background
+            background_tasks.add_task(send_email, "jashansohal2008@gmail.com", subject, body)
+            background_tasks.add_task(send_email, req.contact_email, buyer_subject, buyer_body)
             return {"status": "success", "message": "Purchase inquiry submitted successfully."}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to save inquiry: {e}")
             
-    # Send email alert in background for offline/demo submissions too
+    # Send email alerts in background for offline/demo submissions too
     demo_subject = f"🛍️ [Local Demo] {subject}"
-    background_tasks.add_task(send_email_notification, demo_subject, body)
+    demo_buyer_subject = f"🛍️ [Local Demo] {buyer_subject}"
+    background_tasks.add_task(send_email, "jashansohal2008@gmail.com", demo_subject, body)
+    background_tasks.add_task(send_email, req.contact_email, demo_buyer_subject, buyer_body)
     return {"status": "success", "message": "Demo submission received successfully (Offline/Local)."}
 
 
