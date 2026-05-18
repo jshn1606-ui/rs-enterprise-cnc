@@ -439,13 +439,19 @@ function closeLightbox() {
     }, 300);
 }
 
-// ─── Settings ───────────────────────────────────────────────────────
+// ─── Settings & Configurations ───────────────────────────────────────
+let currentSettings = {};
+const systemConfigForm = document.getElementById('system-config-form');
+
 async function loadSettings() {
     try {
         const res = await fetch(`${API_BASE}/api/settings`, { headers: authHeaders() });
         const data = await res.json();
         if (data.status === 'success' && data.settings) {
             const s = data.settings;
+            currentSettings = s;
+            
+            // ROI Defaults
             document.getElementById('s-payback').value = s.default_payback_months || 14;
             document.getElementById('s-savings').value = s.default_annual_savings_usd || 42000;
             document.getElementById('s-efficiency').value = s.efficiency_gain_percent || 18.5;
@@ -453,12 +459,24 @@ async function loadSettings() {
             document.getElementById('s-electricity').value = s.electricity_cost_per_kwh || 8.5;
             document.getElementById('s-wage').value = s.operator_hourly_wage_inr || 350;
             document.getElementById('s-tooling-wear').value = s.tooling_wear_rate_percent || 2.5;
+
+            // System Config Defaults
+            document.getElementById('cfg-phone').value = s.phone_number || '';
+            document.getElementById('cfg-whatsapp').value = s.whatsapp_number || '';
+            document.getElementById('cfg-email').value = s.email_address || '';
+            document.getElementById('cfg-address').value = s.physical_address || '';
+            document.getElementById('cfg-instagram').value = s.instagram_link || '';
+            document.getElementById('cfg-youtube').value = s.youtube_link || '';
+            document.getElementById('cfg-facebook').value = s.facebook_link || '';
+            document.getElementById('cfg-channel').value = s.channel_link || '';
         }
     } catch (err) { console.error(err); }
 }
+
 settingsForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const payload = {
+        ...currentSettings,
         default_payback_months: parseInt(document.getElementById('s-payback').value),
         default_annual_savings_usd: parseInt(document.getElementById('s-savings').value),
         efficiency_gain_percent: parseFloat(document.getElementById('s-efficiency').value),
@@ -469,8 +487,38 @@ settingsForm.addEventListener('submit', async (e) => {
     };
     try {
         const res = await fetch(`${API_BASE}/api/settings`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
-        if ((await res.json()).status === 'success') alert('ROI settings saved!');
-    } catch (err) { alert('Failed to save.'); }
+        const resData = await res.json();
+        if (resData.status === 'success') {
+            currentSettings = payload;
+            alert('ROI parameters successfully saved and calibrated!');
+        }
+    } catch (err) { alert('Failed to save settings.'); }
 });
+
+if (systemConfigForm) {
+    systemConfigForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            ...currentSettings,
+            phone_number: document.getElementById('cfg-phone').value,
+            whatsapp_number: document.getElementById('cfg-whatsapp').value,
+            email_address: document.getElementById('cfg-email').value,
+            physical_address: document.getElementById('cfg-address').value,
+            instagram_link: document.getElementById('cfg-instagram').value,
+            youtube_link: document.getElementById('cfg-youtube').value,
+            facebook_link: document.getElementById('cfg-facebook').value,
+            channel_link: document.getElementById('cfg-channel').value
+        };
+        try {
+            const res = await fetch(`${API_BASE}/api/settings`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload) });
+            const resData = await res.json();
+            if (resData.status === 'success') {
+                currentSettings = payload;
+                alert('System contact configurations successfully saved and live!');
+            }
+        } catch (err) { alert('Failed to save configurations.'); }
+    });
+}
+
 
 function logout() { sessionStorage.removeItem('rs_admin_token'); authToken = null; location.reload(); }

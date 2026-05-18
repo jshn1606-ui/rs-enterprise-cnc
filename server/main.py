@@ -102,6 +102,15 @@ class ROISettings(BaseModel):
     electricity_cost_per_kwh: float
     operator_hourly_wage_inr: float
     tooling_wear_rate_percent: float
+    phone_number: Optional[str] = None
+    whatsapp_number: Optional[str] = None
+    email_address: Optional[str] = None
+    physical_address: Optional[str] = None
+    instagram_link: Optional[str] = None
+    youtube_link: Optional[str] = None
+    facebook_link: Optional[str] = None
+    channel_link: Optional[str] = None
+
 
 # ─── Database Connection ─────────────────────────────────────────────
 
@@ -434,6 +443,45 @@ async def update_settings(settings: ROISettings, authorization: Optional[str] = 
         raise HTTPException(status_code=500, detail="Database not connected")
     settings_collection.update_one({}, {"$set": settings.dict()}, upsert=True)
     return {"status": "success"}
+
+@app.get("/api/public/settings")
+async def get_public_settings():
+    if db_connected and settings_collection is not None:
+        settings = settings_collection.find_one({}, {"_id": 0})
+        if settings:
+            # Ensure contact fields have nice placeholders if not populated in DB
+            settings.setdefault("phone_number", "+91 90507 00577, +91 90507 00511")
+            settings.setdefault("whatsapp_number", "919050700577")
+            settings.setdefault("email_address", "contact@webcomsirsa.com")
+            settings.setdefault("physical_address", "52, Basement, City Photostat, Opposite Town Park, Ludhiana")
+            settings.setdefault("instagram_link", "https://instagram.com/webcomsirsa")
+            settings.setdefault("youtube_link", "https://youtube.com/shipramiglani")
+            settings.setdefault("facebook_link", "https://facebook.com/webcomsirsa")
+            settings.setdefault("channel_link", "https://whatsapp.com/channel/0029Va9X7Y5B")
+        return {"status": "success", "settings": settings}
+    
+    # Return offline mock settings if database is down
+    return {
+        "status": "success",
+        "settings": {
+            "default_payback_months": 14,
+            "default_annual_savings_usd": 42000,
+            "efficiency_gain_percent": 18.5,
+            "cycle_time_reduction_factor": 0.9,
+            "electricity_cost_per_kwh": 8.5,
+            "operator_hourly_wage_inr": 350,
+            "tooling_wear_rate_percent": 2.5,
+            "phone_number": "+91 90507 00577, +91 90507 00511",
+            "whatsapp_number": "919050700577",
+            "email_address": "contact@webcomsirsa.com",
+            "physical_address": "52, Basement, City Photostat, Opposite Town Park, Ludhiana",
+            "instagram_link": "https://instagram.com/webcomsirsa",
+            "youtube_link": "https://youtube.com/shipramiglani",
+            "facebook_link": "https://facebook.com/webcomsirsa",
+            "channel_link": "https://whatsapp.com/channel/0029Va9X7Y5B"
+        }
+    }
+
 
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))

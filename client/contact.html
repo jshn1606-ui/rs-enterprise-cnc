@@ -68,12 +68,22 @@
             <div class="contact-info-panel">
                 <div class="info-box">
                     <h3>Office Address</h3>
-                    <p><i class="fa-solid fa-map-location-dot"></i> Opp. G.T. Road, Industrial Area-A, Ludhiana, Punjab, India</p>
+                    <p><i class="fa-solid fa-map-location-dot"></i> <span id="cnt-address">Opp. G.T. Road, Industrial Area-A, Ludhiana, Punjab, India</span></p>
                 </div>
                 <div class="info-box">
-                    <h3>Contact Numbers</h3>
-                    <p><i class="fa-solid fa-phone"></i> +91 90507 00577</p>
-                    <p><i class="fa-solid fa-envelope"></i> jshn1606@gmail.com</p>
+                    <h3>Contact Details</h3>
+                    <p><i class="fa-solid fa-phone"></i> <span id="cnt-phone">+91 90507 00577</span></p>
+                    <p><i class="fa-solid fa-envelope"></i> <span id="cnt-email">contact@webcomsirsa.com</span></p>
+                </div>
+                <div class="info-box" id="social-box">
+                    <h3>Connect With Us</h3>
+                    <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 1.5rem;">
+                        <a id="cnt-whatsapp" href="#" target="_blank" style="color: #00e676; display: none;"><i class="fa-brands fa-whatsapp"></i></a>
+                        <a id="cnt-instagram" href="#" target="_blank" style="color: #e1306c; display: none;"><i class="fa-brands fa-instagram"></i></a>
+                        <a id="cnt-youtube" href="#" target="_blank" style="color: #ff0000; display: none;"><i class="fa-brands fa-youtube"></i></a>
+                        <a id="cnt-facebook" href="#" target="_blank" style="color: #1877f2; display: none;"><i class="fa-brands fa-facebook"></i></a>
+                        <a id="cnt-channel" href="#" target="_blank" style="color: #0088cc; display: none;"><i class="fa-solid fa-hashtag"></i></a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -88,5 +98,61 @@
     </footer>
 
     <script src="navbar.js"></script>
+    <script>
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : 'https://rs-enterprise-api.onrender.com';
+        async function fetchContactDetails() {
+            try {
+                const res = await fetch(`${API}/api/public/settings`);
+                const data = await res.json();
+                if (data.status === 'success' && data.settings) {
+                    const s = data.settings;
+                    if (s.physical_address) {
+                        document.getElementById('cnt-address').textContent = s.physical_address;
+                        // Also update the footer dynamic address
+                        const footerParagraph = document.querySelector('.glass-footer p');
+                        if (footerParagraph) {
+                            footerParagraph.innerHTML = `&copy; 2026 RS Enterprise. All Rights Reserved. ${s.physical_address}`;
+                        }
+                    }
+                    if (s.phone_number) document.getElementById('cnt-phone').textContent = s.phone_number;
+                    if (s.email_address) document.getElementById('cnt-email').textContent = s.email_address;
+                    
+                    // Social Links
+                    const wa = document.getElementById('cnt-whatsapp');
+                    if (s.whatsapp_number) {
+                        wa.href = `https://wa.me/${s.whatsapp_number.replace(/\s+/g, '')}`;
+                        wa.style.display = 'inline-block';
+                    } else { wa.style.display = 'none'; }
+
+                    const insta = document.getElementById('cnt-instagram');
+                    if (s.instagram_link) {
+                        insta.href = s.instagram_link;
+                        insta.style.display = 'inline-block';
+                    } else { insta.style.display = 'none'; }
+
+                    const yt = document.getElementById('cnt-youtube');
+                    if (s.youtube_link) {
+                        yt.href = s.youtube_link;
+                        yt.style.display = 'inline-block';
+                    } else { yt.style.display = 'none'; }
+
+                    const fb = document.getElementById('cnt-facebook');
+                    if (s.facebook_link) {
+                        fb.href = s.facebook_link;
+                        fb.style.display = 'inline-block';
+                    } else { fb.style.display = 'none'; }
+
+                    const chan = document.getElementById('cnt-channel');
+                    if (s.channel_link) {
+                        chan.href = s.channel_link;
+                        chan.style.display = 'inline-block';
+                    } else { chan.style.display = 'none'; }
+                }
+            } catch (err) {
+                console.error("Failed to load contact details", err);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', fetchContactDetails);
+    </script>
 </body>
 </html>

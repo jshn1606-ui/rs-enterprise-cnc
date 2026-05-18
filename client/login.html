@@ -250,6 +250,10 @@
                 <button class="admin-tab" data-tab="tab-settings">
                     <i class="fa-solid fa-sliders"></i> AI Tuning
                 </button>
+                <button class="admin-tab" data-tab="tab-system-config">
+                    <i class="fa-solid fa-gears"></i> System Config
+                </button>
+
             </div>
 
             <!-- ── TAB 1: Analytics Overview ── -->
@@ -436,6 +440,59 @@
                         </div>
                         <button type="submit" class="btn-primary" style="border:none;width:100%;justify-content:center;cursor:pointer;">
                             <i class="fa-solid fa-save"></i> Save & Recalibrate
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── TAB 6: System Config ── -->
+            <div class="tab-panel hidden" id="tab-system-config">
+                <div class="glass-form" style="max-width:850px;margin:0 auto;">
+                    <h2 style="color:var(--accent-blue);margin-bottom:0.5rem;"><i class="fa-solid fa-gears"></i> System Config</h2>
+                    <p style="color:var(--text-muted);margin-bottom:2rem;">Manage your public contact information and social media channels. Changes reflect instantly on the website.</p>
+                    <form id="system-config-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="text" id="cfg-phone" class="glass-input" placeholder="+91 90507 00577, +91 90507 00511" required>
+                            </div>
+                            <div class="form-group">
+                                <label>WhatsApp Number (no +)</label>
+                                <input type="text" id="cfg-whatsapp" class="glass-input" placeholder="919050700577" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input type="email" id="cfg-email" class="glass-input" placeholder="contact@webcomsirsa.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Physical Address</label>
+                                <input type="text" id="cfg-address" class="glass-input" placeholder="52, Basement, City Photostat, Opposite Town Park" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Instagram Link</label>
+                                <input type="url" id="cfg-instagram" class="glass-input" placeholder="https://instagram.com/username">
+                            </div>
+                            <div class="form-group">
+                                <label>YouTube Link</label>
+                                <input type="url" id="cfg-youtube" class="glass-input" placeholder="https://youtube.com/@channel">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Facebook Link</label>
+                                <input type="url" id="cfg-facebook" class="glass-input" placeholder="https://facebook.com/page">
+                            </div>
+                            <div class="form-group">
+                                <label>Channel Link (WhatsApp/Telegram)</label>
+                                <input type="url" id="cfg-channel" class="glass-input" placeholder="https://whatsapp.com/channel/abc">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="border:none;width:100%;justify-content:center;cursor:pointer;margin-top:1.5rem;">
+                            <i class="fa-solid fa-save"></i> Save Configurations
                         </button>
                     </form>
                 </div>
