@@ -7,6 +7,99 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Dynamic Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 15, 30, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .glass-modal {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+        }
+        @keyframes modalSlide {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.75rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .modal-close:hover {
+            color: #ff5252;
+        }
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .modal-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: flex-end;
+        }
+        .glass-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        /* Dual CTA Footer Alignment */
+        .catalog-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 1rem;
+        }
+    </style>
 </head>
 <body>
     <div class="mesh-background"></div>
@@ -66,7 +159,7 @@
 
     <script src="navbar.js"></script>
     <script>
-        const API = 'https://rs-enterprise-api.onrender.com';
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : 'https://rs-enterprise-api.onrender.com';
         const grid = document.getElementById('machines-grid');
         const filterBar = document.getElementById('filter-bar');
         const emptyState = document.getElementById('empty-state');
@@ -130,7 +223,10 @@
                         </div>
                         <div class="catalog-card-footer">
                             <span class="catalog-price">$${(m.base_price_usd || 0).toLocaleString()}</span>
-                            <a href="maintenance.html?machine=${encodeURIComponent(m.name)}" class="btn-primary" style="font-size:0.85rem;padding:0.5rem 1.2rem;border:none;">Request Repair <i class="fa-solid fa-wrench"></i></a>
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="openInquiryModal('${m.name.replace(/'/g, "\\'")}')" class="btn-primary" style="font-size:0.8rem;padding:0.5rem 1rem;border:none; cursor: pointer; background: #00e676; border-radius: 6px; display: flex; align-items: center; gap: 4px;">Inquire <i class="fa-solid fa-shopping-bag"></i></button>
+                                <a href="maintenance.html?machine=${encodeURIComponent(m.name)}" class="btn-secondary" style="font-size:0.75rem;padding:0.5rem 0.8rem;border: 1px solid var(--glass-border); border-radius: 6px; color: var(--text-color); display: flex; align-items: center; gap: 4px; text-decoration: none;">Repair <i class="fa-solid fa-wrench"></i></a>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -147,6 +243,97 @@
                 renderMachines(f === 'all' ? allMachines : allMachines.filter(m => m.stock_status === f));
             });
         });
+
+        // Inquiry Modal Controllers
+        const inquiryModal = document.getElementById('inquiry-modal');
+        const inqMachineName = document.getElementById('inq-machine-name');
+        const inqMachineDisplay = document.getElementById('inq-machine-display');
+        const inquiryForm = document.getElementById('inquiry-form');
+
+        function openInquiryModal(machineName) {
+            inqMachineName.value = machineName;
+            inqMachineDisplay.textContent = machineName;
+            inquiryModal.classList.remove('hidden');
+        }
+
+        function closeInquiryModal() {
+            inquiryModal.classList.add('hidden');
+            inquiryForm.reset();
+        }
+
+        async function submitInquiry(event) {
+            event.preventDefault();
+            const payload = {
+                machine_name: inqMachineName.value,
+                company_name: document.getElementById('inq-company').value.trim(),
+                contact_name: document.getElementById('inq-name').value.trim(),
+                contact_email: document.getElementById('inq-email').value.trim(),
+                contact_phone: document.getElementById('inq-phone').value.trim(),
+                message: document.getElementById('inq-message').value.trim()
+            };
+
+            try {
+                const res = await fetch(`${API}/api/inquire`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert(`Inquiry submitted successfully! A sales engineer will contact you shortly about the ${payload.machine_name}.`);
+                    closeInquiryModal();
+                } else {
+                    alert('Submission failed: ' + (data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Server is currently cold-starting — please try again in 30 seconds.');
+            }
+        }
     </script>
+
+    <!-- ── Purchase Inquiry Modal ── -->
+    <div id="inquiry-modal" class="modal-overlay hidden">
+        <div class="glass-modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-shopping-bag"></i> Purchase Inquiry</h3>
+                <button class="modal-close" onclick="closeInquiryModal()">&times;</button>
+            </div>
+            <form id="inquiry-form" onsubmit="submitInquiry(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="inq-machine-name">
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem; line-height: 1.4;">
+                        You are submitting a purchase inquiry for <strong id="inq-machine-display" style="color: var(--accent-blue);">—</strong>. 
+                        Our Ludhiana engineering department will review your shop requirements and generate a customized quote.
+                    </p>
+                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">Company Name</label>
+                        <input type="text" id="inq-company" class="glass-input" placeholder="e.g. Ludhiana Precision Tools Ltd." style="width: 100%;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">Contact Name</label>
+                        <input type="text" id="inq-name" class="glass-input" placeholder="e.g. S. Jashan Singh" style="width: 100%;" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div class="form-group">
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">Email Address</label>
+                            <input type="email" id="inq-email" class="glass-input" placeholder="e.g. sales@ludhianatools.com" style="width: 100%;" required>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">Phone Number</label>
+                            <input type="tel" id="inq-phone" class="glass-input" placeholder="e.g. +91 90507-00577" style="width: 100%;" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">Additional Requirements / Message</label>
+                        <textarea id="inq-message" class="glass-input glass-textarea" placeholder="Include target production volumes, axis speed requests, or specific controllers (FANUC, Siemens)..." style="width: 100%;" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeInquiryModal()" style="margin-right: 8px; font-size: 0.85rem; padding: 0.5rem 1rem; border: 1px solid var(--glass-border); border-radius: 6px; cursor: pointer; color: var(--text-color); background: none;">Cancel</button>
+                    <button type="submit" class="btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1.2rem; border: none; cursor: pointer; background: #00e676; border-radius: 6px; display: flex; align-items: center; gap: 4px;">Submit Inquiry <i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

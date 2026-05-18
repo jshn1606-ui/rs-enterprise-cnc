@@ -94,6 +94,14 @@ class MaintenanceRequest(BaseModel):
 class MaintenanceStatusUpdate(BaseModel):
     status: str
 
+class PurchaseInquiry(BaseModel):
+    machine_name: str
+    company_name: str
+    contact_name: str
+    contact_email: str
+    contact_phone: str
+    message: str
+
 class ROISettings(BaseModel):
     default_payback_months: int
     default_annual_savings_usd: int
@@ -775,6 +783,100 @@ async def create_maintenance_ticket(req: MaintenanceRequest, background_tasks: B
     return {"status": "success", "message": "Demo submission received successfully (Offline/Local)."}
 
 
+@app.post("/api/inquire")
+async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTasks):
+    # Prepare premium HTML email template
+    subject = f"🛍️ [RS Enterprise] New Machine Purchase Inquiry: {req.machine_name} - {req.company_name}"
+    
+    body = f"""
+    <html>
+    <body style="font-family: 'Inter', Arial, sans-serif; color: #1a202c; line-height: 1.6; background-color: #f7fafc; padding: 20px 0;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #edf2f7; padding-bottom: 20px;">
+                <span style="font-weight: 800; font-size: 1.5rem; color: #0a0f1e; letter-spacing: 0.5px;">RS <span style="color: #00e676;">ENTERPRISE</span></span>
+                <div style="font-size: 0.9rem; color: #718096; margin-top: 5px;">CNC Machine Sales Inventory Lead Alert</div>
+            </div>
+            
+            <h2 style="color: #00e676; margin-top: 0; font-size: 1.3rem;">🛍️ Machine Purchase Inquiry</h2>
+            
+            <p>A new potential client has submitted a formal purchase inquiry regarding one of your listed catalog machines:</p>
+            
+            <!-- Machine Highlight Card -->
+            <div style="background-color: #f7fafc; border: 1px solid #edf2f7; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center;">
+                <span style="font-size: 11px; color: #00b0ff; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">INQUIRED MODEL</span>
+                <h2 style="color: #0a0f1e; margin: 5px 0 0 0; font-size: 1.4rem; font-weight: 800;">{req.machine_name}</h2>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568; width: 40%;">Company Name:</td>
+                    <td style="padding: 10px 0; color: #2d3748;">{req.company_name}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568;">Contact Person:</td>
+                    <td style="padding: 10px 0; color: #2d3748;">{req.contact_name}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568;">Contact Email:</td>
+                    <td style="padding: 10px 0; color: #2d3748;"><a href="mailto:{req.contact_email}" style="color: #00e676; text-decoration: none;">{req.contact_email}</a></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568;">Contact Phone:</td>
+                    <td style="padding: 10px 0; color: #2d3748;">{req.contact_phone}</td>
+                </tr>
+            </table>
+            
+            <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 25px 0;">
+            
+            <h3 style="color: #2d3748; margin-top: 0; font-size: 1.1rem;">📝 Message & Custom Requirements:</h3>
+            <p style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #00e676; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; white-space: pre-wrap; margin-bottom: 25px; color: #2d3748;">{req.message}</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://jshn1606-ui.github.io/rs-enterprise-cnc/client/login.html" style="display: inline-block; background-color: #0a0f1e; color: #00e676; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.95rem; border: 1px solid #00e676; box-shadow: 0 4px 10px rgba(0, 230, 118, 0.15); transition: all 0.3s ease;">
+                    Open Admin Command Center
+                </a>
+            </div>
+            
+            <p style="font-size: 0.75rem; color: #a0aec0; margin-top: 30px; text-align: center; border-top: 1px solid #edf2f7; padding-top: 15px;">
+                Notification automatically dispatched by Antigravity AI Core.
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+
+    # We map this purchase inquiry to a MaintenanceRequest shape inside MongoDB
+    # so that it perfectly loads inside the existing Admin dashboard Maintenance Hub!
+    db_doc = {
+        "client_name": f"{req.company_name} ({req.contact_name})",
+        "contact_email": req.contact_email,
+        "contact_phone": req.contact_phone,
+        "machine_model": req.machine_name,
+        "issue_category": "Purchase Inquiry",
+        "urgency": "Medium",
+        "description": req.message,
+        "error_code": None,
+        "images": [],
+        "status": "new",
+        "created_at": datetime.utcnow().isoformat()
+    }
+
+    if db_connected and maintenance_collection is not None:
+        try:
+            maintenance_collection.insert_one(db_doc)
+            # Send email alert asynchronously in the background
+            background_tasks.add_task(send_email_notification, subject, body)
+            return {"status": "success", "message": "Purchase inquiry submitted successfully."}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to save inquiry: {e}")
+            
+    # Send email alert in background for offline/demo submissions too
+    demo_subject = f"🛍️ [Local Demo] {subject}"
+    background_tasks.add_task(send_email_notification, demo_subject, body)
+    return {"status": "success", "message": "Demo submission received successfully (Offline/Local)."}
+
+
 @app.get("/")
 def read_root():
     return {"message": "Antigravity Gemini 3.1 Pro Backend is active.", "database_connected": db_connected}
+
