@@ -378,11 +378,11 @@ async function loadLeads() {
                     </td>
                     <td>
                         <select class="lead-status-select" onchange="updateTicketStatus('${tid}', this.value)">
-                            <option value="new" ${status==='new'?'selected':''}>🟡 New Lead</option>
-                            <option value="in_diagnostic" ${status==='in_diagnostic'?'selected':''}>🔵 Contacted</option>
-                            <option value="in_progress" ${status==='in_progress'?'selected':''}>🟠 Negotiation</option>
-                            <option value="resolved" ${status==='resolved'?'selected':''}>🟢 Closed Won</option>
-                            <option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected</option>
+                            <option value="new" ${status==='new'?'selected':''}>🟡 New / Pending</option>
+                            <option value="in_diagnostic" ${status==='in_diagnostic'?'selected':''}>🔵 Contacted / Diagnostic</option>
+                            <option value="in_progress" ${status==='in_progress'?'selected':''}>🟠 Negotiation / In Progress</option>
+                            <option value="resolved" ${status==='resolved'?'selected':''}>🟢 Won / Resolved</option>
+                            <option value="rejected" ${status==='rejected'?'selected':''}>❌ Rejected / Closed</option>
                         </select>
                     </td>
                     <td class="action-cell">
@@ -391,8 +391,8 @@ async function loadLeads() {
                     </td>`;
                 leadsBody.appendChild(tr);
             });
-        } else { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state">No inquiries received yet.</td></tr>'; }
-    } catch (err) { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state error-state">Error loading inquiries.</td></tr>'; }
+        } else { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state">No leads or tickets received yet.</td></tr>'; }
+    } catch (err) { leadsBody.innerHTML = '<tr><td colspan="6" class="empty-state error-state">Error loading leads & tickets.</td></tr>'; }
 }
 
 async function updateTicketStatus(tid, s) { 

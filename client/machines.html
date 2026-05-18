@@ -245,10 +245,13 @@
                                 ${priceHtml}
                             </div>
                             <!-- Row 2: Action CTAs -->
-                            <div style="display: flex; width: 100%;">
+                            <div style="display: flex; gap: 8px; width: 100%;">
                                 <button onclick="openInquiryModal('${m.name.replace(/'/g, "\\'")}')" class="btn-primary" style="font-size: 0.85rem; padding: 0.6rem 1.2rem; border: none; cursor: pointer; background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; font-weight: bold; color: #000000; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.15); transition: all 0.2s;">
                                     Inquire <i class="fa-solid fa-shopping-bag" style="font-size: 0.8rem;"></i>
                                 </button>
+                                <a href="maintenance.html?machine=${encodeURIComponent(m.name)}" class="btn-secondary" style="font-size: 0.8rem; padding: 0.6rem 1rem; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: var(--text-color); display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; font-weight: 600; background: rgba(255, 255, 255, 0.03); transition: all 0.2s;">
+                                    Repair <i class="fa-solid fa-wrench" style="font-size: 0.8rem;"></i>
+                                </a>
                             </div>
                         </div>
                     </div>

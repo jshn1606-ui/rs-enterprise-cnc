@@ -248,7 +248,7 @@
                     <i class="fa-solid fa-plus-circle"></i> Add / Edit
                 </button>
                 <button class="admin-tab" data-tab="tab-leads">
-                    <i class="fa-solid fa-comments-dollar"></i> Machine Inquiries
+                    <i class="fa-solid fa-screwdriver-wrench"></i> Inquiries & Repairs
                 </button>
                 <button class="admin-tab" data-tab="tab-settings">
                     <i class="fa-solid fa-sliders"></i> AI Tuning
@@ -402,18 +402,18 @@
                 </div>
             </div>
 
-            <!-- ── TAB 4: Inquiries & Leads Hub ── -->
+            <!-- ── TAB 4: CRM & Maintenance Hub ── -->
             <div class="tab-panel hidden" id="tab-leads">
-                <h2 style="margin-bottom:1.5rem;color:var(--accent-blue);"><i class="fa-solid fa-comments-dollar"></i> Buyer Inquiries & Leads</h2>
+                <h2 style="margin-bottom:1.5rem;color:var(--accent-blue);"><i class="fa-solid fa-screwdriver-wrench"></i> Leads & Maintenance Tickets</h2>
                 <div class="leads-container">
                     <table class="leads-table">
                         <thead>
                             <tr>
-                                <th>Buyer / Company</th>
-                                <th>Inquired Machine</th>
-                                <th>Request Type</th>
-                                <th>Contact Information</th>
-                                <th>Lead Status</th>
+                                <th>Client / Buyer</th>
+                                <th>Machine Model</th>
+                                <th>Request Type / Issue</th>
+                                <th>Contact Info</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -515,7 +515,7 @@
     <div id="ticket-detail-modal" class="modal-overlay hidden">
         <div class="glass-modal">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-comments-dollar"></i> Lead Inquiry Details</h3>
+                <h3><i class="fa-solid fa-envelope-open-text"></i> Inquiry & Ticket Details</h3>
                 <button class="modal-close" onclick="closeTicketModal()">&times;</button>
             </div>
             <div class="modal-body">
