@@ -512,6 +512,12 @@
         </div>
     </footer>
 
+    <!-- Custom Glassmorphic Image Lightbox Zoom Overlay -->
+    <div id="image-lightbox" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 8, 16, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
+        <button type="button" onclick="closeLightbox()" style="position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #ffffff; font-size: 1.5rem; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10000; transition: all 0.2s;"><i class="fa-solid fa-xmark"></i></button>
+        <img id="lightbox-img" src="" alt="Enlarged Component Image" style="max-width: 90%; max-height: 85%; border-radius: 12px; box-shadow: 0 25px 60px rgba(0,0,0,0.6); transform: scale(0.92); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); border: 1px solid rgba(255, 255, 255, 0.08); object-fit: contain;">
+    </div>
+
     <script src="navbar.js"></script>
     <script src="admin.js"></script>
 </body>

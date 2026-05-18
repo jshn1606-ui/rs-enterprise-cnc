@@ -401,7 +401,7 @@ function viewTicketDetail(tid) {
         images.forEach((imgBase64, idx) => {
             const card = document.createElement('div');
             card.className = 'detail-image-card';
-            card.innerHTML = `<img src="${imgBase64}" alt="Issue Image ${idx + 1}" onclick="window.open('${imgBase64}', '_blank')">`;
+            card.innerHTML = `<img src="${imgBase64}" alt="Issue Image ${idx + 1}" onclick="openLightbox('${imgBase64}')" style="cursor: zoom-in;">`;
             imgGrid.appendChild(card);
         });
     } else {
@@ -414,6 +414,29 @@ function viewTicketDetail(tid) {
 
 function closeTicketModal() {
     document.getElementById('ticket-detail-modal').classList.add('hidden');
+}
+
+function openLightbox(imgSrc) {
+    const lightbox = document.getElementById('image-lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    lightboxImg.src = imgSrc;
+    lightbox.classList.remove('hidden');
+    lightbox.style.pointerEvents = 'auto';
+    setTimeout(() => {
+        lightbox.style.opacity = '1';
+        lightboxImg.style.transform = 'scale(1)';
+    }, 50);
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('image-lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    lightbox.style.opacity = '0';
+    lightboxImg.style.transform = 'scale(0.92)';
+    lightbox.style.pointerEvents = 'none';
+    setTimeout(() => {
+        lightbox.classList.add('hidden');
+    }, 300);
 }
 
 // ─── Settings ───────────────────────────────────────────────────────
