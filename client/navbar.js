@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${API}/api/public/settings`);
             const data = await res.json();
             if (data.status === 'success' && data.settings && data.settings.physical_address) {
-                const footerParagraph = document.querySelector('.glass-footer p');
+                const footerParagraph = document.querySelector('footer p');
                 if (footerParagraph) {
                     footerParagraph.innerHTML = `&copy; 2026 RS Enterprise. All Rights Reserved. ${data.settings.physical_address}`;
                 }
