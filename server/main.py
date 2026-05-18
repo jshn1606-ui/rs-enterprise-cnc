@@ -642,6 +642,72 @@ async def configure_machine(req: ConfigureRequest, background_tasks: BackgroundT
 
 @app.post("/api/maintenance")
 async def create_maintenance_ticket(req: MaintenanceRequest, background_tasks: BackgroundTasks):
+    # Prepare premium HTML email template
+    urgency_color = '#ff5252' if req.urgency == 'High' else '#ffc107' if req.urgency == 'Medium' else '#00e676'
+    subject = f"🛠️ [RS Enterprise] New CNC Maintenance Query ({req.urgency} Urgency) - {req.client_name}"
+    
+    body = f"""
+    <html>
+    <body style="font-family: 'Inter', Arial, sans-serif; color: #1a202c; line-height: 1.6; background-color: #f7fafc; padding: 20px 0;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #edf2f7; padding-bottom: 20px;">
+                <span style="font-weight: 800; font-size: 1.5rem; color: #0a0f1e; letter-spacing: 0.5px;">RS <span style="color: #00e6f2;">ENTERPRISE</span></span>
+                <div style="font-size: 0.9rem; color: #718096; margin-top: 5px;">CNC Machine Maintenance & Diagnostics Alert</div>
+            </div>
+            
+            <h2 style="color: {urgency_color}; margin-top: 0; font-size: 1.3rem;">🛠️ Maintenance Request Details</h2>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568; width: 40%;">Client / Company:</td>
+                    <td style="padding: 10px 0; color: #2d3748;">{req.client_name}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568;">Contact Email:</td>
+                    <td style="padding: 10px 0; color: #2d3748;"><a href="mailto:{req.contact_email}" style="color: #00e6f2; text-decoration: none;">{req.contact_email}</a></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568;">Contact Phone:</td>
+                    <td style="padding: 10px 0; color: #2d3748;">{req.contact_phone}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568;">CNC Machine Model:</td>
+                    <td style="padding: 10px 0; color: #2d3748; font-weight: 600;">{req.machine_model}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568;">Issue Category:</td>
+                    <td style="padding: 10px 0; color: #2d3748;">{req.issue_category}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568;">Urgency Level:</td>
+                    <td style="padding: 10px 0;"><span style="font-weight: bold; color: {urgency_color}; background-color: {urgency_color}1a; padding: 4px 8px; border-radius: 4px;">{req.urgency}</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 10px 0; font-weight: bold; color: #4a5568;">Controller Error Code:</td>
+                    <td style="padding: 10px 0; color: #2d3748; font-family: monospace;">{req.error_code or 'None'}</td>
+                </tr>
+            </table>
+            
+            <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 25px 0;">
+            
+            <h3 style="color: #2d3748; margin-top: 0; font-size: 1.1rem;">📝 Description of Symptoms:</h3>
+            <p style="background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid {urgency_color}; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; white-space: pre-wrap; margin-bottom: 25px; color: #2d3748;">{req.description}</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://jshn1606-ui.github.io/rs-enterprise-cnc/client/login.html" style="display: inline-block; background-color: #0a0f1e; color: #00e6f2; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.95rem; border: 1px solid #00e6f2; box-shadow: 0 4px 10px rgba(0, 230, 242, 0.15); transition: all 0.3s ease;">
+                    Open Admin Command Center
+                </a>
+            </div>
+
+            
+            <p style="font-size: 0.75rem; color: #a0aec0; margin-top: 30px; text-align: center; border-top: 1px solid #edf2f7; padding-top: 15px;">
+                Notification automatically dispatched by Antigravity AI Core.
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+
     if db_connected and maintenance_collection is not None:
         try:
             doc = req.dict()
@@ -650,37 +716,16 @@ async def create_maintenance_ticket(req: MaintenanceRequest, background_tasks: B
             maintenance_collection.insert_one(doc)
             
             # Send email alert asynchronously in the background
-            subject = f"🛠️ New CNC Maintenance Ticket: {req.urgency} Urgency from {req.client_name}"
-            body = f"""
-            <html>
-            <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                    <h2 style="color: #ff5252; border-bottom: 2px solid #ff5252; padding-bottom: 10px; margin-top: 0;">New CNC Maintenance & Repair Query</h2>
-                    <p><strong>Company / Client Name:</strong> {req.client_name}</p>
-                    <p><strong>Contact Email:</strong> {req.contact_email}</p>
-                    <p><strong>Contact Phone:</strong> {req.contact_phone}</p>
-                    <p><strong>Machine Model:</strong> {req.machine_model}</p>
-                    <p><strong>Issue Category:</strong> {req.issue_category}</p>
-                    <p><strong>Urgency Level:</strong> <span style="font-weight: bold; color: {'#ff5252' if req.urgency == 'High' else '#ffc107' if req.urgency == 'Medium' else '#00e676'};">{req.urgency}</span></p>
-                    <p><strong>Controller Error Code:</strong> {req.error_code or 'None'}</p>
-                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-                    <h3 style="color: #1a202c;">Description of Symptoms:</h3>
-                    <p style="background: #f7fafc; padding: 12px; border-radius: 6px; border-left: 4px solid #ff5252; font-family: monospace; white-space: pre-wrap;">{req.description}</p>
-                    <p style="font-size: 0.8rem; color: #a0aec0; margin-top: 30px; text-align: center;">Notification automatically dispatched by Antigravity AI.</p>
-                </div>
-            </body>
-            </html>
-            """
             background_tasks.add_task(send_email_notification, subject, body)
             return {"status": "success", "message": "Repair ticket submitted successfully."}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to save ticket: {e}")
             
     # Send email alert in background for offline/demo submissions too
-    subject = f"🛠️ [Local Demo] CNC Maintenance Ticket from {req.client_name}"
-    body = f"Client: {req.client_name}<br>Urgency: {req.urgency}<br>Description: {req.description}"
-    background_tasks.add_task(send_email_notification, subject, body)
+    demo_subject = f"🛠️ [Local Demo] {subject}"
+    background_tasks.add_task(send_email_notification, demo_subject, body)
     return {"status": "success", "message": "Demo submission received successfully (Offline/Local)."}
+
 
 @app.get("/")
 def read_root():

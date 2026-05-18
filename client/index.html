@@ -110,7 +110,7 @@
     <script src="navbar.js"></script>
     <script>
         // Fetch machines from API and display on public homepage
-        const API = 'https://rs-enterprise-api.onrender.com';
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : 'https://rs-enterprise-api.onrender.com';
         const grid = document.getElementById('public-machines-grid');
         const section = document.getElementById('machines-section');
 

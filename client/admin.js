@@ -1,4 +1,4 @@
-const API_BASE = 'https://rs-enterprise-api.onrender.com';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : 'https://rs-enterprise-api.onrender.com';
 
 let authToken = sessionStorage.getItem('rs_admin_token') || null;
 let editingMachineId = null;
