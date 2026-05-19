@@ -133,10 +133,7 @@
                         const badgeClass = m.stock_status === 'in_stock' ? 'badge-instock' : 'badge-special';
                         const badgeText = m.stock_status === 'in_stock' ? 'In Stock' : 'Special Order';
 
-                        const isQuery = m.is_query_for_price || false;
-                        const priceLinkHtml = isQuery
-                            ? `<a href="machines.html?inquire=${encodeURIComponent(m.name)}" style="color:#00e6f2; text-decoration:underline; font-weight:bold; display:inline-flex; align-items:center; gap:3px;">Query for Price <i class="fa-solid fa-arrow-right" style="font-size:0.65rem;"></i></a>`
-                            : `<span style="color:var(--accent-blue); font-weight:bold;">$${(m.base_price_usd||0).toLocaleString()}</span>`;
+                        const priceLinkHtml = `<a href="machines.html?inquire=${encodeURIComponent(m.name)}" style="color:#00e6f2; text-decoration:underline; font-weight:bold; display:inline-flex; align-items:center; gap:3px;">Inquire for Price <i class="fa-solid fa-arrow-right" style="font-size:0.65rem;"></i></a>`;
 
                         const card = document.createElement('div');
                         card.className = 'feature-card';

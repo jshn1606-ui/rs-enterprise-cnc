@@ -403,13 +403,8 @@
                 specsContainer.appendChild(item);
             });
 
-            const isQuery = m.is_query_for_price || false;
             const priceVal = document.getElementById('det-price-value');
-            if (isQuery) {
-                priceVal.innerHTML = `<span style="color:#00e6f2;">Query for Price</span>`;
-            } else {
-                priceVal.textContent = `$${(m.base_price_usd || 0).toLocaleString()}`;
-            }
+            priceVal.innerHTML = `<span style="color:#00e6f2;">Inquire for Price</span>`;
 
             const inqBtn = document.getElementById('det-inquiry-btn');
             inqBtn.onclick = () => {
@@ -437,10 +432,7 @@
                 const badgeClass = m.stock_status === 'in_stock' ? 'badge-instock' : m.stock_status === 'out_of_stock' ? 'badge-outofstock' : 'badge-special';
                 const badgeText = m.stock_status === 'in_stock' ? 'In Stock' : m.stock_status === 'out_of_stock' ? 'Out of Stock' : 'Special Order';
 
-                const isQuery = m.is_query_for_price || false;
-                const priceHtml = isQuery 
-                    ? `<span class="catalog-price" style="font-size: 0.95rem; color: #00e6f2; font-weight: 700; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-file-invoice-dollar" style="color: #00e6f2; font-size: 1rem;"></i> Query for Price</span>`
-                    : `<span class="catalog-price" style="font-size: 1.05rem; color: var(--accent-blue); font-weight: 700; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-dollar-sign" style="color: var(--accent-blue); font-size: 0.95rem;"></i> ${(m.base_price_usd || 0).toLocaleString()}</span>`;
+                const priceHtml = `<span class="catalog-price" style="font-size: 0.95rem; color: #00e6f2; font-weight: 700; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-file-invoice-dollar" style="color: #00e6f2; font-size: 1rem;"></i> Inquire for Price</span>`;
 
                 const card = document.createElement('div');
                 card.className = 'machine-catalog-card';

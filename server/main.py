@@ -898,6 +898,30 @@ async def create_maintenance_ticket(req: MaintenanceRequest, background_tasks: B
 
 @app.post("/api/inquire")
 async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTasks):
+    import re
+    # Fetch dynamic machine details from database to resolve the price
+    base_price_usd = 0
+    machine_description = "Premium industrial CNC Machinery"
+    if db_connected and machines_collection is not None:
+        try:
+            m_doc = machines_collection.find_one({"name": {"$regex": f"^{re.escape(req.machine_name)}$", "$options": "i"}})
+            if m_doc:
+                base_price_usd = m_doc.get("base_price_usd") or 0
+                machine_description = m_doc.get("description", machine_description)
+        except Exception as e:
+            print(f"Error querying machine price: {e}")
+
+    if base_price_usd > 0:
+        machine_price_str = f"${base_price_usd:,} USD"
+    else:
+        # Fallbacks for default machines if not in database
+        defaults = {
+            "RS-Titan 5X-Pro": "$185,000 USD",
+            "RS-Apex 3X-Standard": "$45,000 USD",
+            "RS-Rotary 4X-Pro": "$75,000 USD"
+        }
+        machine_price_str = defaults.get(req.machine_name, "Pricing available upon technical assessment")
+
     # Prepare premium HTML email template for Admin
     subject = f"🛍️ [RS Enterprise] New Machine Purchase Inquiry: {req.machine_name} - {req.company_name}"
     
@@ -918,6 +942,7 @@ async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTas
             <div style="background-color: #f7fafc; border: 1px solid #edf2f7; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center;">
                 <span style="font-size: 11px; color: #00b0ff; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">INQUIRED MODEL</span>
                 <h2 style="color: #0a0f1e; margin: 5px 0 0 0; font-size: 1.4rem; font-weight: 800;">{req.machine_name}</h2>
+                <div style="font-size: 0.95rem; color: #00e676; font-weight: bold; margin-top: 5px;">Standard Price: {machine_price_str}</div>
             </div>
             
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
@@ -975,8 +1000,8 @@ async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTas
         except Exception:
             pass
 
-    # Build B2B Buyer Auto-Reply
-    buyer_subject = f"🛍️ Inquiry Received: {req.machine_name} - RS Enterprise"
+    # Build B2B Buyer Auto-Reply with Price details
+    buyer_subject = f"🛍️ Automated Price Quote: {req.machine_name} - RS Enterprise"
     buyer_body = f"""
     <html>
     <body style="font-family: 'Inter', Arial, sans-serif; color: #1a202c; line-height: 1.6; background-color: #f7fafc; padding: 20px 0;">
@@ -989,14 +1014,25 @@ async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTas
             <h2 style="color: #00e6f2; margin-top: 0; font-size: 1.3rem;">Dear {req.contact_name},</h2>
             <p>Thank you for reaching out to RS Enterprise. We have successfully registered your formal purchase inquiry for the premium CNC machine: <strong>{req.machine_name}</strong>.</p>
             
-            <p>A senior CNC sales engineer from our G.T. Road Ludhiana facility has been assigned to your query. We are currently preparing a comprehensive technical quote, shipping timeline estimates, and precision calibration test records customized to your workshop's needs.</p>
+            <p>Below is the automated B2B pricing quote for this machine model, based on our current Ludhiana warehouse inventory:</p>
+            
+            <!-- Machine Quote Box -->
+            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; border-left: 5px solid #22c55e;">
+                <span style="font-size: 11px; color: #15803d; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">Base Model Price Quote</span>
+                <h2 style="color: #14532d; margin: 5px 0; font-size: 1.8rem; font-weight: 800;">{machine_price_str}</h2>
+                <div style="font-size: 0.85rem; color: #166534;">*Excludes custom tooling kits, gantry accessories, local duties, and G.T. Road dispatch shipping.</div>
+            </div>
             
             <div style="background-color: #f7fafc; border-left: 4px solid #00e6f2; padding: 15px; margin: 20px 0; border-radius: 6px;">
-                <strong style="color: #0a0f1e; display: block; margin-bottom: 5px;">Lead Profile & Inquiry Summary:</strong>
+                <strong style="color: #0a0f1e; display: block; margin-bottom: 5px;">Inquiry & Model Summary:</strong>
                 <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse;">
                     <tr style="border-bottom: 1px solid #edf2f7;">
-                        <td style="padding: 6px 0; color: #718096; font-weight: 600; width: 35%;">Requested CNC Model:</td>
+                        <td style="padding: 6px 0; color: #718096; font-weight: 600; width: 35%;">CNC Model:</td>
                         <td style="padding: 6px 0; color: #1a202c; font-weight: bold;">{req.machine_name}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #edf2f7;">
+                        <td style="padding: 6px 0; color: #718096; font-weight: 600;">Description:</td>
+                        <td style="padding: 6px 0; color: #1a202c;">{machine_description}</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #edf2f7;">
                         <td style="padding: 6px 0; color: #718096; font-weight: 600;">Your Company:</td>
@@ -1004,11 +1040,11 @@ async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTas
                     </tr>
                     <tr style="border-bottom: 1px solid #edf2f7;">
                         <td style="padding: 6px 0; color: #718096; font-weight: 600;">Status:</td>
-                        <td style="padding: 6px 0; color: #00e6f2; font-weight: bold;"><span style="background-color: #00e6f21a; padding: 2px 8px; border-radius: 4px;">Technical Review In Progress</span></td>
+                        <td style="padding: 6px 0; color: #00e6f2; font-weight: bold;"><span style="background-color: #00e6f21a; padding: 2px 8px; border-radius: 4px;">Quote Dispatched (Automated)</span></td>
                     </tr>
                 </table>
             </div>
-
+ 
             <h3 style="color: #2d3748; font-size: 1.1rem; margin-top: 25px;">Rigorous Calibration & Quality Assurance</h3>
             <p>At RS Enterprise, we ensure all pre-owned CNC routers, gantries, and simultaneous multi-axis mills are thoroughly inspected, cleaned of mechanical slop, retrofitted with modern industrial controllers, and laser-calibrated to original axis tolerances under <strong>0.01mm</strong>.</p>
             
