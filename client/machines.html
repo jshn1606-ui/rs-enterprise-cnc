@@ -99,26 +99,87 @@
             border-top: 1px solid rgba(255,255,255,0.05);
             padding-top: 1rem;
         }
-        /* Card Expansion Styling */
-        .machine-catalog-card {
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        /* Detail Modal Popup Overlay */
+        .modal-overlay.detail-overlay {
+            background: rgba(5, 7, 15, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
-        .machine-details-expanded {
-            max-height: 0;
+        .glass-modal.detail-modal-card {
+            width: 850px;
+            max-width: 95%;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+            background: rgba(15, 18, 30, 0.85);
+            animation: modalPopUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalPopUp {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        @media (max-width: 768px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+        .detail-gallery-main {
+            width: 100%;
+            height: 280px;
+            border-radius: 12px;
             overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-            opacity: 0;
-            border-top: 1px dashed rgba(255, 255, 255, 0);
-            padding-top: 0;
-            margin-top: 0;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
         }
-        .machine-catalog-card.is-expanded .machine-details-expanded {
-            max-height: 800px;
-            opacity: 1;
-            border-top: 1px dashed rgba(255, 255, 255, 0.1);
-            padding-top: 1.25rem;
-            margin-top: 1.25rem;
+        .detail-gallery-main img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .detail-gallery-thumbs {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+        .detail-gallery-thumbs::-webkit-scrollbar {
+            height: 4px;
+        }
+        .detail-gallery-thumbs::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+        .detail-thumb-img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1.5px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .detail-thumb-img:hover, .detail-thumb-img.active {
+            border-color: var(--accent-blue);
+            transform: scale(1.05);
+        }
+        .detail-specs-title {
+            font-size: 0.8rem;
+            color: var(--accent-blue);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            display: block;
         }
         .expanded-specs-grid {
             display: grid;
@@ -150,40 +211,9 @@
             font-weight: 600;
             margin-top: 0.15rem;
         }
-        .expanded-gallery-title {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            display: block;
-            margin: 1rem 0 0.5rem 0;
-            letter-spacing: 0.5px;
-        }
-        .expanded-gallery-scroll {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 6px;
-        }
-        .expanded-gallery-scroll::-webkit-scrollbar {
-            height: 4px;
-        }
-        .expanded-gallery-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
-        }
-        .expanded-gallery-img {
-            width: 70px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1.5px solid rgba(255, 255, 255, 0.1);
+        .machine-catalog-card {
             cursor: pointer;
-            transition: all 0.2s;
-        }
-        .expanded-gallery-img:hover {
-            border-color: var(--accent-blue);
-            transform: scale(1.05);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
     </style>
 </head>
@@ -280,12 +310,98 @@
                 grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:3rem;">Backend is waking up — please refresh in 30 seconds.</p>';
             });
 
-        function updateMainImage(thumbEl) {
-            const card = thumbEl.closest('.machine-catalog-card');
-            const mainImg = card.querySelector('.catalog-card-img img');
-            if (mainImg) {
-                mainImg.src = thumbEl.src;
+        function openMachineDetailModal(machineId) {
+            const m = allMachines.find(x => x.machine_id === machineId);
+            if (!m) return;
+
+            document.getElementById('det-title').textContent = m.name;
+            
+            const badgeClass = m.stock_status === 'in_stock' ? 'badge-instock' : m.stock_status === 'out_of_stock' ? 'badge-outofstock' : 'badge-special';
+            const badgeText = m.stock_status === 'in_stock' ? 'In Stock' : m.stock_status === 'out_of_stock' ? 'Out of Stock' : 'Special Order';
+            document.getElementById('det-badge').className = 'badge ' + badgeClass;
+            document.getElementById('det-badge').textContent = badgeText;
+            
+            document.getElementById('det-desc').textContent = m.description || 'No description provided.';
+            
+            const mainImg = document.getElementById('det-main-img');
+            const hasImg = m.image_data && m.image_data.startsWith('data:');
+            mainImg.src = hasImg ? m.image_data : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23222"/><text x="50" y="50" fill="%23fff" font-family="sans-serif" font-size="10" text-anchor="middle" dominant-baseline="middle">No Image</text></svg>';
+            
+            const thumbsContainer = document.getElementById('det-thumbs');
+            thumbsContainer.innerHTML = '';
+            const allImages = m.images && m.images.length > 0 ? m.images : (m.image_data ? [m.image_data] : []);
+            if (allImages.length > 1) {
+                allImages.forEach((img, idx) => {
+                    const thumb = document.createElement('img');
+                    thumb.src = img;
+                    thumb.className = 'detail-thumb-img' + (idx === 0 ? ' active' : '');
+                    thumb.onclick = () => {
+                        mainImg.src = img;
+                        document.querySelectorAll('.detail-thumb-img').forEach(t => t.classList.remove('active'));
+                        thumb.classList.add('active');
+                    };
+                    thumbsContainer.appendChild(thumb);
+                });
+                thumbsContainer.style.display = 'flex';
+            } else {
+                thumbsContainer.style.display = 'none';
             }
+
+            const specsList = [];
+            if (m.controller_type) specsList.push({ label: 'CNC Controller', val: m.controller_type });
+            if (m.axis_config) specsList.push({ label: 'Axis Config', val: m.axis_config });
+            if (m.spindle_speed_rpm) specsList.push({ label: 'Spindle Speed', val: `${m.spindle_speed_rpm.toLocaleString()} RPM` });
+            if (m.work_radius_mm) specsList.push({ label: 'Axis Travel', val: `${m.work_radius_mm} mm` });
+            if (m.table_size) specsList.push({ label: 'Table Size', val: m.table_size });
+            if (m.max_workpiece_weight_kg) specsList.push({ label: 'Max Load Cap', val: `${m.max_workpiece_weight_kg} kg` });
+            if (m.rapid_traverse_rate) specsList.push({ label: 'Rapid Traverse', val: m.rapid_traverse_rate });
+            if (m.positional_accuracy) specsList.push({ label: 'Axis Precision', val: m.positional_accuracy });
+            if (m.power_rating_kw) specsList.push({ label: 'Motor Power', val: `${m.power_rating_kw} kW` });
+            if (m.coolant_system) specsList.push({ label: 'Coolant/Hydraulics', val: m.coolant_system });
+            if (m.max_footprint_sqft) specsList.push({ label: 'Shop Footprint', val: `${m.max_footprint_sqft} sq ft` });
+            if (m.tooling_kit) specsList.push({ label: 'Included Tooling', val: m.tooling_kit });
+
+            if (specsList.length === 0) {
+                specsList.push({ label: 'Refurb Grade', val: 'A+ Industrial' });
+                specsList.push({ label: 'Repeatability', val: '±0.01mm Guaranteed' });
+                specsList.push({ label: 'Geometry Realignment', val: 'Fully certified to original tolerances' });
+                specsList.push({ label: 'Technical Support', val: 'Ludhiana G.T. Road backup' });
+            }
+
+            const specsContainer = document.getElementById('det-specs');
+            specsContainer.innerHTML = '';
+            specsList.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'expanded-spec-item';
+                item.innerHTML = `
+                    <span class="expanded-spec-label">${s.label}</span>
+                    <span class="expanded-spec-value">${s.val}</span>
+                `;
+                specsContainer.appendChild(item);
+            });
+
+            const isQuery = m.is_query_for_price || false;
+            const priceVal = document.getElementById('det-price-value');
+            if (isQuery) {
+                priceVal.innerHTML = `<span style="color:#00e6f2;">Query for Price</span>`;
+            } else {
+                priceVal.textContent = `$${(m.base_price_usd || 0).toLocaleString()}`;
+            }
+
+            const inqBtn = document.getElementById('det-inquiry-btn');
+            inqBtn.onclick = () => {
+                closeMachineDetailModal();
+                openInquiryModal(m.name);
+            };
+
+            const repairBtn = document.getElementById('det-repair-btn');
+            repairBtn.href = `maintenance.html?machine=${encodeURIComponent(m.name)}`;
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        function closeMachineDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
         }
 
         function renderMachines(machines) {
@@ -303,49 +419,6 @@
                 const priceHtml = isQuery 
                     ? `<span class="catalog-price" style="font-size: 0.95rem; color: #00e6f2; font-weight: 700; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-file-invoice-dollar" style="color: #00e6f2; font-size: 1rem;"></i> Query for Price</span>`
                     : `<span class="catalog-price" style="font-size: 1.05rem; color: var(--accent-blue); font-weight: 700; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-dollar-sign" style="color: var(--accent-blue); font-size: 0.95rem;"></i> ${(m.base_price_usd || 0).toLocaleString()}</span>`;
-
-                // Build technical specifications dynamically
-                const specsList = [];
-                if (m.controller_type) specsList.push({ label: 'Controller', val: m.controller_type });
-                if (m.work_radius_mm) specsList.push({ label: 'Axis Travel', val: `${m.work_radius_mm} mm` });
-                if (m.table_size) specsList.push({ label: 'Table Size', val: m.table_size });
-                if (m.max_workpiece_weight_kg) specsList.push({ label: 'Max Load', val: `${m.max_workpiece_weight_kg} kg` });
-                if (m.rapid_traverse_rate) specsList.push({ label: 'Rapid Traverse', val: m.rapid_traverse_rate });
-                if (m.positional_accuracy) specsList.push({ label: 'Accuracy', val: m.positional_accuracy });
-                if (m.coolant_system) specsList.push({ label: 'Coolant System', val: m.coolant_system });
-                if (m.power_rating_kw) specsList.push({ label: 'Spindle Power', val: `${m.power_rating_kw} kW` });
-
-                // Fallbacks if no extended specs are present
-                if (specsList.length === 0) {
-                    specsList.push({ label: 'Refurb Grade', val: 'A+ Industrial' });
-                    specsList.push({ label: 'Repeatability', val: '±0.01mm Guaranteed' });
-                    specsList.push({ label: 'Controller Test', val: 'Complete Diagnostic Passed' });
-                    specsList.push({ label: 'Ludhiana Support', val: 'Spares & Servicing Included' });
-                }
-
-                const specsGridHtml = `
-                    <div class="expanded-specs-grid">
-                        ${specsList.map(s => `
-                            <div class="expanded-spec-item">
-                                <span class="expanded-spec-label">${s.label}</span>
-                                <span class="expanded-spec-value">${s.val}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-
-                // Multi-Image scrollable gallery
-                let imagesTrayHtml = '';
-                if (m.images && m.images.length > 1) {
-                    imagesTrayHtml = `
-                        <span class="expanded-gallery-title">Machine Gallery</span>
-                        <div class="expanded-gallery-scroll">
-                            ${m.images.map((img, idx) => `
-                                <img src="${img}" alt="${m.name} Photo ${idx + 1}" class="expanded-gallery-img" onclick="event.stopPropagation(); updateMainImage(this)">
-                            `).join('')}
-                        </div>
-                    `;
-                }
 
                 const card = document.createElement('div');
                 card.className = 'machine-catalog-card';
@@ -376,17 +449,10 @@
                             </div>
                         </div>
 
-                        <!-- Clickable Expand Prompt Row -->
-                        <div class="expand-prompt" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.8rem; color: var(--accent-blue); margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 0.75rem; transition: all 0.2s;">
-                            <span class="prompt-text">View Specs & Gallery</span>
-                            <i class="fa-solid fa-chevron-down expand-chevron" style="transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
-                        </div>
-
-                        <!-- Technical Specs & Image Gallery Expanded Drawer -->
-                        <div class="machine-details-expanded">
-                            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px;">Technical Specifications</span>
-                            ${specsGridHtml}
-                            ${imagesTrayHtml}
+                        <!-- Clickable Pop-up Details Trigger Row -->
+                        <div class="expand-prompt" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.8rem; color: var(--accent-blue); margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 0.75rem;">
+                            <span>View Full Specs & Gallery</span>
+                            <i class="fa-solid fa-up-right-from-square" style="font-size: 0.75rem;"></i>
                         </div>
 
                         <div class="catalog-card-footer" style="display: flex; flex-direction: column; gap: 12px; margin-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
@@ -408,21 +474,10 @@
                     </div>
                 `;
 
-                // Safe click listener for expanding
+                // Add whole card click trigger (skipping CTA button events)
                 card.addEventListener('click', (e) => {
-                    if (e.target.closest('button, a, img, .filter-btn, .modal-overlay')) return;
-                    
-                    card.classList.toggle('is-expanded');
-                    const chevron = card.querySelector('.expand-chevron');
-                    const promptText = card.querySelector('.prompt-text');
-                    
-                    if (card.classList.contains('is-expanded')) {
-                        if (chevron) chevron.style.transform = 'rotate(180deg)';
-                        if (promptText) promptText.textContent = 'Hide Specs & Gallery';
-                    } else {
-                        if (chevron) chevron.style.transform = 'rotate(0deg)';
-                        if (promptText) promptText.textContent = 'View Specs & Gallery';
-                    }
+                    if (e.target.closest('button, a, .filter-btn')) return;
+                    openMachineDetailModal(m.machine_id);
                 });
 
                 grid.appendChild(card);
@@ -528,6 +583,72 @@
                     <button type="submit" class="btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1.2rem; border: none; cursor: pointer; background: #00e676; border-radius: 6px; display: flex; align-items: center; gap: 4px;">Submit Inquiry <i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ── Interactive Technical Detail Pop-up Modal (Topup) ── -->
+    <div id="detail-modal" class="modal-overlay detail-overlay hidden" onclick="event.target.id === 'detail-modal' && closeMachineDetailModal()">
+        <div class="glass-modal detail-modal-card" style="max-height: 90vh;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-microchip"></i> Technical Specifications</h3>
+                <button class="modal-close" onclick="closeMachineDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 2rem;">
+                <div class="detail-grid">
+                    <!-- Left Column: Image Gallery & Carousel -->
+                    <div>
+                        <div class="detail-gallery-main">
+                            <img id="det-main-img" src="" alt="CNC Machine">
+                        </div>
+                        <div class="detail-gallery-thumbs" id="det-thumbs">
+                            <!-- Thumbnails dynamically inserted here -->
+                        </div>
+                        
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 1.25rem; border-radius: 12px; margin-top: 1.5rem;">
+                            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 0.25rem;">Refurbishing Certificate</span>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin: 0;">
+                                Every pre-owned CNC machine is fully dismantled, retrofitted with certified parts, laser-calibrated to <strong style="color:var(--accent-blue);">0.01mm tolerances</strong>, and test-run for 72 continuous hours in Ludhiana before delivery.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column: Specs & Info -->
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; gap: 0.5rem; flex-wrap: wrap;">
+                                <h2 id="det-title" style="margin: 0; color: #fff; font-size: 1.5rem; font-weight: 800;">Machine Name</h2>
+                                <span id="det-badge" class="badge">In Stock</span>
+                            </div>
+                            <p id="det-desc" style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin: 0;">
+                                Machine description goes here.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <span class="detail-specs-title">Parameter Metrics</span>
+                            <div id="det-specs" class="expanded-specs-grid" style="grid-template-columns: repeat(2, 1fr); max-height: 230px; overflow-y: auto; padding-right: 4px;">
+                                <!-- Specifications populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Price Info -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); padding: 1rem; border-radius: 12px; margin-top: 0.5rem;">
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">B2B Pricing</span>
+                            <span id="det-price-value" style="font-size: 1.3rem; color: var(--accent-blue); font-weight: 800;">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="padding: 1.25rem 2rem; display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+                <button type="button" class="btn-secondary" onclick="closeMachineDetailModal()" style="font-size: 0.9rem; padding: 0.6rem 1.2rem; border: 1px solid var(--glass-border); border-radius: 8px; cursor: pointer; color: var(--text-color); background: none;">Close</button>
+                <a id="det-repair-btn" href="" class="btn-secondary" style="font-size: 0.9rem; padding: 0.6rem 1.2rem; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: var(--text-color); display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; font-weight: 600; background: rgba(255, 255, 255, 0.03); transition: all 0.2s;">
+                    Repair Portal <i class="fa-solid fa-wrench" style="font-size: 0.85rem;"></i>
+                </a>
+                <button id="det-inquiry-btn" class="btn-primary" style="font-size: 0.9rem; padding: 0.6rem 1.5rem; border: none; cursor: pointer; background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%); border-radius: 8px; display: flex; align-items: center; gap: 6px; font-weight: bold; color: #000000; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.2);">
+                    Inquire Now <i class="fa-solid fa-shopping-bag" style="font-size: 0.85rem;"></i>
+                </button>
+            </div>
         </div>
     </div>
 </body>
