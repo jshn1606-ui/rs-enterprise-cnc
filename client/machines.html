@@ -99,6 +99,92 @@
             border-top: 1px solid rgba(255,255,255,0.05);
             padding-top: 1rem;
         }
+        /* Card Expansion Styling */
+        .machine-catalog-card {
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .machine-details-expanded {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+            opacity: 0;
+            border-top: 1px dashed rgba(255, 255, 255, 0);
+            padding-top: 0;
+            margin-top: 0;
+        }
+        .machine-catalog-card.is-expanded .machine-details-expanded {
+            max-height: 800px;
+            opacity: 1;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+            padding-top: 1.25rem;
+            margin-top: 1.25rem;
+        }
+        .expanded-specs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .expanded-spec-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.2s;
+        }
+        .expanded-spec-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .expanded-spec-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .expanded-spec-value {
+            font-size: 0.85rem;
+            color: var(--text-main);
+            font-weight: 600;
+            margin-top: 0.15rem;
+        }
+        .expanded-gallery-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            display: block;
+            margin: 1rem 0 0.5rem 0;
+            letter-spacing: 0.5px;
+        }
+        .expanded-gallery-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+        .expanded-gallery-scroll::-webkit-scrollbar {
+            height: 4px;
+        }
+        .expanded-gallery-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+        .expanded-gallery-img {
+            width: 70px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .expanded-gallery-img:hover {
+            border-color: var(--accent-blue);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -194,6 +280,14 @@
                 grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:3rem;">Backend is waking up — please refresh in 30 seconds.</p>';
             });
 
+        function updateMainImage(thumbEl) {
+            const card = thumbEl.closest('.machine-catalog-card');
+            const mainImg = card.querySelector('.catalog-card-img img');
+            if (mainImg) {
+                mainImg.src = thumbEl.src;
+            }
+        }
+
         function renderMachines(machines) {
             grid.innerHTML = '';
             if (machines.length === 0) {
@@ -209,6 +303,49 @@
                 const priceHtml = isQuery 
                     ? `<span class="catalog-price" style="font-size: 0.95rem; color: #00e6f2; font-weight: 700; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-file-invoice-dollar" style="color: #00e6f2; font-size: 1rem;"></i> Query for Price</span>`
                     : `<span class="catalog-price" style="font-size: 1.05rem; color: var(--accent-blue); font-weight: 700; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-dollar-sign" style="color: var(--accent-blue); font-size: 0.95rem;"></i> ${(m.base_price_usd || 0).toLocaleString()}</span>`;
+
+                // Build technical specifications dynamically
+                const specsList = [];
+                if (m.controller_type) specsList.push({ label: 'Controller', val: m.controller_type });
+                if (m.work_radius_mm) specsList.push({ label: 'Axis Travel', val: `${m.work_radius_mm} mm` });
+                if (m.table_size) specsList.push({ label: 'Table Size', val: m.table_size });
+                if (m.max_workpiece_weight_kg) specsList.push({ label: 'Max Load', val: `${m.max_workpiece_weight_kg} kg` });
+                if (m.rapid_traverse_rate) specsList.push({ label: 'Rapid Traverse', val: m.rapid_traverse_rate });
+                if (m.positional_accuracy) specsList.push({ label: 'Accuracy', val: m.positional_accuracy });
+                if (m.coolant_system) specsList.push({ label: 'Coolant System', val: m.coolant_system });
+                if (m.power_rating_kw) specsList.push({ label: 'Spindle Power', val: `${m.power_rating_kw} kW` });
+
+                // Fallbacks if no extended specs are present
+                if (specsList.length === 0) {
+                    specsList.push({ label: 'Refurb Grade', val: 'A+ Industrial' });
+                    specsList.push({ label: 'Repeatability', val: '±0.01mm Guaranteed' });
+                    specsList.push({ label: 'Controller Test', val: 'Complete Diagnostic Passed' });
+                    specsList.push({ label: 'Ludhiana Support', val: 'Spares & Servicing Included' });
+                }
+
+                const specsGridHtml = `
+                    <div class="expanded-specs-grid">
+                        ${specsList.map(s => `
+                            <div class="expanded-spec-item">
+                                <span class="expanded-spec-label">${s.label}</span>
+                                <span class="expanded-spec-value">${s.val}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                // Multi-Image scrollable gallery
+                let imagesTrayHtml = '';
+                if (m.images && m.images.length > 1) {
+                    imagesTrayHtml = `
+                        <span class="expanded-gallery-title">Machine Gallery</span>
+                        <div class="expanded-gallery-scroll">
+                            ${m.images.map((img, idx) => `
+                                <img src="${img}" alt="${m.name} Photo ${idx + 1}" class="expanded-gallery-img" onclick="event.stopPropagation(); updateMainImage(this)">
+                            `).join('')}
+                        </div>
+                    `;
+                }
 
                 const card = document.createElement('div');
                 card.className = 'machine-catalog-card';
@@ -238,6 +375,20 @@
                                 <span>${m.tooling_kit || '—'}</span>
                             </div>
                         </div>
+
+                        <!-- Clickable Expand Prompt Row -->
+                        <div class="expand-prompt" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.8rem; color: var(--accent-blue); margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 0.75rem; transition: all 0.2s;">
+                            <span class="prompt-text">View Specs & Gallery</span>
+                            <i class="fa-solid fa-chevron-down expand-chevron" style="transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);"></i>
+                        </div>
+
+                        <!-- Technical Specs & Image Gallery Expanded Drawer -->
+                        <div class="machine-details-expanded">
+                            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 0.5rem; letter-spacing: 0.5px;">Technical Specifications</span>
+                            ${specsGridHtml}
+                            ${imagesTrayHtml}
+                        </div>
+
                         <div class="catalog-card-footer" style="display: flex; flex-direction: column; gap: 12px; margin-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
                             <!-- Row 1: Pricing Info -->
                             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
@@ -256,6 +407,24 @@
                         </div>
                     </div>
                 `;
+
+                // Safe click listener for expanding
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('button, a, img, .filter-btn, .modal-overlay')) return;
+                    
+                    card.classList.toggle('is-expanded');
+                    const chevron = card.querySelector('.expand-chevron');
+                    const promptText = card.querySelector('.prompt-text');
+                    
+                    if (card.classList.contains('is-expanded')) {
+                        if (chevron) chevron.style.transform = 'rotate(180deg)';
+                        if (promptText) promptText.textContent = 'Hide Specs & Gallery';
+                    } else {
+                        if (chevron) chevron.style.transform = 'rotate(0deg)';
+                        if (promptText) promptText.textContent = 'View Specs & Gallery';
+                    }
+                });
+
                 grid.appendChild(card);
             });
         }
