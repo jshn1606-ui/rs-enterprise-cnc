@@ -599,11 +599,10 @@ async def get_public_settings():
         }
     }
 
-
-SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
-SMTP_USER = os.getenv("SMTP_USER", "rs.enterprise.ludhiana@gmail.com")
-SMTP_PASS = os.getenv("SMTP_PASS", "ufxswcfokbimxxqj")
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 465
+SMTP_USER = "rs.enterprise.ludhiana@gmail.com"
+SMTP_PASS = "ufxswcfokbimxxqj"
 
 def send_via_http_fallback(recipient: str, subject: str, html_body: str, sender_email: str):
     import urllib.request
