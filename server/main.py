@@ -599,7 +599,7 @@ async def get_public_settings():
         }
     }
 
-RESEND_API_KEY = "re_YUCb1Tv2_EQ1J1ZxhRWoXgs4sr3fVAasG"
+RESEND_API_KEY = "re_eUQnaMJv_8zZxgiR4ucc38anL7k2cTwAP"
 SENDER_EMAIL = "RS Enterprise <onboarding@resend.dev>"
 
 def send_email(recipient: str, subject: str, body: str):
