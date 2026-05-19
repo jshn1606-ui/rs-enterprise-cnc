@@ -599,74 +599,39 @@ async def get_public_settings():
         }
     }
 
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 465
-SMTP_USER = "rs.enterprise.ludhiana@gmail.com"
-SMTP_PASS = "ufxswcfokbimxxqj"
+RESEND_API_KEY = "re_YUCb1Tv2_EQ1J1ZxhRWoXgs4sr3fVAasG"
+SENDER_EMAIL = "RS Enterprise <onboarding@resend.dev>"
 
-def send_via_http_fallback(recipient: str, subject: str, html_body: str, sender_email: str):
+def send_email(recipient: str, subject: str, body: str):
+    """Send email via Resend HTTP API — bypasses all cloud firewall port blocks."""
     import urllib.request
     import json
-    import re
     
-    # Strip HTML tags to make it read perfectly as plain text in standard mail clients
-    clean_text = re.sub('<[^<]+?>', '\n', html_body)
-    clean_text = "\n".join([line.strip() for line in clean_text.split("\n") if line.strip()])
-    
-    url = f"https://formsubmit.co/ajax/{recipient}"
+    url = "https://api.resend.com/emails"
     payload = {
-        "_subject": subject,
-        "email": sender_email,
-        "message": clean_text,
-        "_template": "box"
+        "from": SENDER_EMAIL,
+        "to": [recipient],
+        "subject": subject,
+        "html": body
     }
     
     try:
-        data = json.dumps(payload).encode('utf-8')
+        data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             url,
             data=data,
-            headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0'}
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json"
+            }
         )
-        with urllib.request.urlopen(req, timeout=12) as response:
-            res_body = response.read().decode('utf-8')
+        with urllib.request.urlopen(req, timeout=15) as response:
+            res_body = response.read().decode("utf-8")
+            print(f"✅ Resend: Email successfully delivered to {recipient}. Response: {res_body}")
             return True, res_body
     except Exception as e:
+        print(f"❌ Resend: Failed to deliver email to {recipient}. Error: {e}")
         return False, str(e)
-
-def send_email(recipient: str, subject: str, body: str):
-    sender_email = SMTP_USER if SMTP_USER else "rs.enterprise.alerts@gmail.com"
-    
-    # 1. Try standard SMTP First (if credentials are set)
-    if SMTP_USER and SMTP_PASS:
-        try:
-            msg = MIMEMultipart()
-            msg['From'] = SMTP_USER
-            msg['To'] = recipient
-            msg['Subject'] = subject
-            msg.attach(MIMEText(body, 'html'))
-
-            if SMTP_PORT == 465:
-                server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=8)
-            else:
-                server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=8)
-                server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, recipient, msg.as_string())
-            server.quit()
-            print(f"Successfully sent email to {recipient} via SMTP!")
-            return True, "SMTP"
-        except Exception as e:
-            print(f"SMTP sending to {recipient} failed ({e}). Attempting secure HTTPS fallback relay...")
-            
-    # 2. HTTPS Webhook Fallback (Bypasses Render's firewall blocks 100% of the time)
-    success, err_msg = send_via_http_fallback(recipient, subject, body, sender_email)
-    if success:
-        print(f"Successfully delivered email to {recipient} via HTTPS relay fallback!")
-        return True, "HTTPS Fallback"
-    else:
-        print(f"HTTPS fallback also failed for {recipient}: {err_msg}")
-        return False, err_msg
 
 def send_email_notification(subject: str, body: str):
     send_email("jashansohal2008@gmail.com", subject, body)
@@ -674,68 +639,36 @@ def send_email_notification(subject: str, body: str):
 @app.get("/api/diagnostics/email")
 async def test_email_diagnostics():
     recipient = "jashansohal2008@gmail.com"
-    sender_email = SMTP_USER if SMTP_USER else "rs.enterprise.alerts@gmail.com"
+    subject = "🛠️ RS Enterprise — Resend API Diagnostics Test"
+    body = """
+    <html>
+    <body style="font-family: Arial, sans-serif; background: #f7fafc; padding: 30px;">
+        <div style="max-width: 500px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <h2 style="color: #00e676;">✅ Resend API is Working!</h2>
+            <p>Your RS Enterprise email pipeline is fully operational via the Resend HTTP API.</p>
+            <p style="color: #718096; font-size: 0.85rem;">All buyer auto-quotes and admin alerts will now be delivered reliably.</p>
+        </div>
+    </body>
+    </html>
+    """
     
-    details = {
-        "smtp_server": SMTP_SERVER,
-        "smtp_port": SMTP_PORT,
-        "smtp_user": SMTP_USER,
-        "has_pass": SMTP_PASS is not None and len(SMTP_PASS) > 0,
-        "pass_length": len(SMTP_PASS) if SMTP_PASS else 0
-    }
-    
-    smtp_error = None
-    # 1. Try standard SMTP
-    if SMTP_USER and SMTP_PASS:
-        try:
-            msg = MIMEMultipart()
-            msg['From'] = SMTP_USER
-            msg['To'] = recipient
-            msg['Subject'] = "🛠️ RS Enterprise CNC - SMTP Diagnostics Test"
-            body = "<h3>SMTP Diagnostics Test</h3><p>Your SMTP is working perfectly!</p>"
-            msg.attach(MIMEText(body, 'html'))
-            
-            if SMTP_PORT == 465:
-                server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=8)
-            else:
-                server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=8)
-                server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, recipient, msg.as_string())
-            server.quit()
-            
-            return {
-                "status": "success",
-                "channel": "SMTP",
-                "message": f"SMTP test succeeded! Check the inbox of {recipient}.",
-                "details": details
-            }
-        except Exception as e:
-            smtp_error = str(e)
-    else:
-        smtp_error = "No SMTP credentials configured."
-        
-    # 2. Trigger secure HTTPS Fallback because SMTP is blocked by cloud provider
-    test_subject = "🛠️ RS Enterprise CNC - HTTPS Fallback Connection Test"
-    test_body = "<h3>HTTPS Connection Fallback Test</h3><p>Render's mail firewall blocked standard SMTP, but our secure HTTPS fallback is working perfectly!</p>"
-    success, res_msg = send_via_http_fallback(recipient, test_subject, test_body, sender_email)
+    success, response = send_email(recipient, subject, body)
     
     if success:
         return {
             "status": "success",
-            "channel": "HTTPS Fallback Relay",
-            "message": f"Email delivered via HTTPS relay fallback! Standard SMTP failed: {smtp_error}. Please check the inbox of {recipient} to activate FormSubmit.",
-            "details": details,
-            "api_response": res_msg
+            "channel": "Resend HTTP API",
+            "message": f"✅ Test email dispatched successfully to {recipient}! Check your inbox now.",
+            "resend_response": response
         }
     else:
         return {
             "status": "error",
-            "message": f"Both SMTP and HTTPS Fallback failed.",
-            "smtp_error": smtp_error,
-            "http_error": res_msg,
-            "details": details
+            "channel": "Resend HTTP API",
+            "message": "❌ Resend API call failed.",
+            "error": response
         }
+
 
 # ─── Configurator (Dynamic) ─────────────────────────────────────────
 
