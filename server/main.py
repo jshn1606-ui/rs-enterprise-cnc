@@ -601,7 +601,7 @@ async def get_public_settings():
 
 
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
 SMTP_USER = os.getenv("SMTP_USER", "rs.enterprise.ludhiana@gmail.com")
 SMTP_PASS = os.getenv("SMTP_PASS", "ufxswcfokbimxxqj")
 
@@ -647,8 +647,11 @@ def send_email(recipient: str, subject: str, body: str):
             msg['Subject'] = subject
             msg.attach(MIMEText(body, 'html'))
 
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=8)
-            server.starttls()
+            if SMTP_PORT == 465:
+                server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=8)
+            else:
+                server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=8)
+                server.starttls()
             server.login(SMTP_USER, SMTP_PASS)
             server.sendmail(SMTP_USER, recipient, msg.as_string())
             server.quit()
@@ -693,8 +696,11 @@ async def test_email_diagnostics():
             body = "<h3>SMTP Diagnostics Test</h3><p>Your SMTP is working perfectly!</p>"
             msg.attach(MIMEText(body, 'html'))
             
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=8)
-            server.starttls()
+            if SMTP_PORT == 465:
+                server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=8)
+            else:
+                server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=8)
+                server.starttls()
             server.login(SMTP_USER, SMTP_PASS)
             server.sendmail(SMTP_USER, recipient, msg.as_string())
             server.quit()
