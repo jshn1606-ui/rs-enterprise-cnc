@@ -634,11 +634,11 @@ def send_email(recipient: str, subject: str, body: str):
         return False, str(e)
 
 def send_email_notification(subject: str, body: str):
-    send_email("jashansohal2008@gmail.com", subject, body)
+    send_email("rs.enterprise.ludhiana@gmail.com", subject, body)
 
 @app.get("/api/diagnostics/email")
 async def test_email_diagnostics():
-    recipient = "jashansohal2008@gmail.com"
+    recipient = "rs.enterprise.ludhiana@gmail.com"
     subject = "🛠️ RS Enterprise — Resend API Diagnostics Test"
     body = """
     <html>
