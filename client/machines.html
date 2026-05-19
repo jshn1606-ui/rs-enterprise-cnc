@@ -490,27 +490,25 @@
             });
         });
 
-        // Inquiry Modal Controllers
-        const inquiryModal = document.getElementById('inquiry-modal');
-        const inqMachineName = document.getElementById('inq-machine-name');
-        const inqMachineDisplay = document.getElementById('inq-machine-display');
-        const inquiryForm = document.getElementById('inquiry-form');
-
+        // Inquiry Modal Controllers — lazy getElementById so DOM order doesn't matter
         function openInquiryModal(machineName) {
-            inqMachineName.value = machineName;
-            inqMachineDisplay.textContent = machineName;
-            inquiryModal.classList.remove('hidden');
+            document.getElementById('inq-machine-name').value = machineName;
+            document.getElementById('inq-machine-display').textContent = machineName;
+            document.getElementById('inquiry-modal').classList.remove('hidden');
         }
 
         function closeInquiryModal() {
-            inquiryModal.classList.add('hidden');
-            inquiryForm.reset();
+            document.getElementById('inquiry-modal').classList.add('hidden');
+            document.getElementById('inquiry-form').reset();
         }
 
         async function submitInquiry(event) {
             event.preventDefault();
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
+
             const payload = {
-                machine_name: inqMachineName.value,
+                machine_name: document.getElementById('inq-machine-name').value,
                 company_name: document.getElementById('inq-company').value.trim(),
                 contact_name: document.getElementById('inq-name').value.trim(),
                 contact_email: document.getElementById('inq-email').value.trim(),
@@ -526,13 +524,40 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    alert(`Inquiry submitted successfully! A sales engineer will contact you shortly about the ${payload.machine_name}.`);
+                    alert(`✅ Inquiry submitted! Our Ludhiana sales team will contact you shortly about: ${payload.machine_name}.`);
                     closeInquiryModal();
                 } else {
                     alert('Submission failed: ' + (data.message || 'Unknown error'));
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Submit Inquiry <i class="fa-solid fa-paper-plane"></i>'; }
                 }
             } catch (err) {
-                alert('Server is currently cold-starting — please try again in 30 seconds.');
+                // Fallback: try FormSubmit.co as backup relay
+                try {
+                    const fallbackRes = await fetch(`https://formsubmit.co/ajax/jashansohal2008@gmail.com`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({
+                            _subject: `🛍️ Buy Query: ${payload.machine_name} from ${payload.company_name}`,
+                            company: payload.company_name,
+                            contact: payload.contact_name,
+                            email: payload.contact_email,
+                            phone: payload.contact_phone,
+                            machine: payload.machine_name,
+                            message: payload.message,
+                            _template: 'box'
+                        })
+                    });
+                    const fb = await fallbackRes.json();
+                    if (fb.success === 'true' || fb.success === true) {
+                        alert(`✅ Inquiry sent via backup relay! Our team will contact you about: ${payload.machine_name}.`);
+                        closeInquiryModal();
+                    } else {
+                        throw new Error('Fallback failed');
+                    }
+                } catch(e2) {
+                    alert('⚠️ Could not reach the server. Please WhatsApp us at +91 90507 00577 or email contact@webcomsirsa.com with your inquiry for: ' + payload.machine_name);
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Submit Inquiry <i class="fa-solid fa-paper-plane"></i>'; }
+                }
             }
         }
     </script>
