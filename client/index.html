@@ -40,7 +40,8 @@
             <p class="hero-subtitle">We buy, sell, fully refurbish, and service pre-owned industrial CNC machines. Every system is rigorously stress-tested and precision-calibrated for high-yield efficiency.</p>
             <div class="hero-btns">
                 <a href="machines.html" class="btn-primary">Buy Machines <i class="fa-solid fa-cart-shopping"></i></a>
-                <a href="maintenance.html" class="btn-secondary">CNC Machine Maintenance <i class="fa-solid fa-wrench"></i></a>
+                <a href="machines.html#inquiry" class="btn-secondary" style="background: linear-gradient(135deg, #00e676 0%, #00b0ff 100%); color: #000; border: none; font-weight: 700;">Machine Inquiry <i class="fa-solid fa-comments-dollar"></i></a>
+                <a href="maintenance.html" class="btn-secondary">CNC Maintenance <i class="fa-solid fa-wrench"></i></a>
             </div>
         </section>
 
@@ -139,15 +140,19 @@
 
                         const card = document.createElement('div');
                         card.className = 'feature-card';
+                        card.style.cssText = 'cursor:pointer; transition: all 0.3s ease;';
                         card.innerHTML = `
                             ${imgHtml}
                             <h3>${m.name} <span class="badge ${badgeClass}" style="font-size:0.7rem;vertical-align:middle;">${badgeText}</span></h3>
-                            <p>${m.description}</p>
+                            <p style="flex:1;">${m.description}</p>
                             <p style="color:var(--accent-blue);font-size:0.85rem;margin-top:0.8rem;font-weight:600;display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
                                 <span>${m.axis_config} · ${(m.spindle_speed_rpm||0).toLocaleString()} RPM</span>
                                 <span>·</span>
                                 ${priceLinkHtml}
                             </p>
+                            <a href="machines.html?inquire=${encodeURIComponent(m.name)}" style="display:inline-flex;align-items:center;gap:6px;margin-top:1rem;padding:0.55rem 1.2rem;background:linear-gradient(135deg,#00e676,#00b0ff);color:#000;font-weight:700;font-size:0.85rem;border-radius:8px;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                                Inquire Now <i class="fa-solid fa-comments-dollar" style="font-size:0.8rem;"></i>
+                            </a>
                         `;
                         grid.appendChild(card);
                     });

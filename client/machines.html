@@ -314,16 +314,15 @@
                     filterBar.style.display = 'flex';
                     renderMachines(allMachines);
 
-                    // Check for URL parameter to auto-trigger inquiry modal
+                    // Check for URL parameter OR hash to auto-trigger inquiry modal
                     const urlParams = new URLSearchParams(window.location.search);
                     const inquireMachine = urlParams.get('inquire');
+                    const hashInquiry = window.location.hash === '#inquiry';
                     if (inquireMachine) {
                         const matched = allMachines.find(m => m.name.toLowerCase() === inquireMachine.toLowerCase());
-                        if (matched) {
-                            openInquiryModal(matched.name);
-                        } else {
-                            openInquiryModal(inquireMachine);
-                        }
+                        setTimeout(() => openInquiryModal(matched ? matched.name : inquireMachine), 400);
+                    } else if (hashInquiry) {
+                        setTimeout(() => openInquiryModal('General Machine Inquiry'), 400);
                     }
                 } else {
                     grid.innerHTML = '';
