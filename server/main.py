@@ -605,6 +605,7 @@ SENDER_EMAIL = "RS Enterprise <onboarding@resend.dev>"
 def send_email(recipient: str, subject: str, body: str):
     """Send email via Resend HTTP API — bypasses all cloud firewall port blocks."""
     import urllib.request
+    import urllib.error
     import json
     
     url = "https://api.resend.com/emails"
@@ -629,6 +630,10 @@ def send_email(recipient: str, subject: str, body: str):
             res_body = response.read().decode("utf-8")
             print(f"✅ Resend: Email successfully delivered to {recipient}. Response: {res_body}")
             return True, res_body
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8")
+        print(f"❌ Resend HTTP Error {e.code}: {error_body}")
+        return False, f"HTTP {e.code}: {error_body}"
     except Exception as e:
         print(f"❌ Resend: Failed to deliver email to {recipient}. Error: {e}")
         return False, str(e)
