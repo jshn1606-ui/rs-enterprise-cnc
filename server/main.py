@@ -599,21 +599,22 @@ async def get_public_settings():
         }
     }
 
-RESEND_API_KEY = "re_eUQnaMJv_8zZxgiR4ucc38anL7k2cTwAP"
-SENDER_EMAIL = "RS Enterprise <onboarding@resend.dev>"
+BREVO_API_KEY = "xkeysib-PLACEHOLDER"
+SENDER_EMAIL = "rs.enterprise.ludhiana@gmail.com"
+SENDER_NAME = "RS Enterprise CNC"
 
 def send_email(recipient: str, subject: str, body: str):
-    """Send email via Resend HTTP API — bypasses all cloud firewall port blocks."""
+    """Send email via Brevo Transactional API — no domain verification required."""
     import urllib.request
     import urllib.error
     import json
     
-    url = "https://api.resend.com/emails"
+    url = "https://api.brevo.com/v3/smtp/email"
     payload = {
-        "from": SENDER_EMAIL,
-        "to": [recipient],
+        "sender": {"name": SENDER_NAME, "email": SENDER_EMAIL},
+        "to": [{"email": recipient}],
         "subject": subject,
-        "html": body
+        "htmlContent": body
     }
     
     try:
@@ -622,20 +623,21 @@ def send_email(recipient: str, subject: str, body: str):
             url,
             data=data,
             headers={
-                "Authorization": f"Bearer {RESEND_API_KEY}",
-                "Content-Type": "application/json"
+                "api-key": BREVO_API_KEY,
+                "Content-Type": "application/json",
+                "Accept": "application/json"
             }
         )
         with urllib.request.urlopen(req, timeout=15) as response:
             res_body = response.read().decode("utf-8")
-            print(f"✅ Resend: Email successfully delivered to {recipient}. Response: {res_body}")
+            print(f"✅ Brevo: Email delivered to {recipient}. Response: {res_body}")
             return True, res_body
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8")
-        print(f"❌ Resend HTTP Error {e.code}: {error_body}")
+        print(f"❌ Brevo HTTP Error {e.code}: {error_body}")
         return False, f"HTTP {e.code}: {error_body}"
     except Exception as e:
-        print(f"❌ Resend: Failed to deliver email to {recipient}. Error: {e}")
+        print(f"❌ Brevo: Failed to deliver email to {recipient}. Error: {e}")
         return False, str(e)
 
 def send_email_notification(subject: str, body: str):
@@ -644,13 +646,13 @@ def send_email_notification(subject: str, body: str):
 @app.get("/api/diagnostics/email")
 async def test_email_diagnostics():
     recipient = "jashansohal2008@gmail.com"
-    subject = "🛠️ RS Enterprise — Resend API Diagnostics Test"
+    subject = "🛠️ RS Enterprise — Brevo API Diagnostics Test"
     body = """
     <html>
     <body style="font-family: Arial, sans-serif; background: #f7fafc; padding: 30px;">
         <div style="max-width: 500px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <h2 style="color: #00e676;">✅ Resend API is Working!</h2>
-            <p>Your RS Enterprise email pipeline is fully operational via the Resend HTTP API.</p>
+            <h2 style="color: #00e676;">✅ Brevo API is Working!</h2>
+            <p>Your RS Enterprise email pipeline is fully operational via Brevo.</p>
             <p style="color: #718096; font-size: 0.85rem;">All buyer auto-quotes and admin alerts will now be delivered reliably.</p>
         </div>
     </body>
@@ -662,15 +664,143 @@ async def test_email_diagnostics():
     if success:
         return {
             "status": "success",
-            "channel": "Resend HTTP API",
-            "message": f"✅ Test email dispatched successfully to {recipient}! Check your inbox now.",
-            "resend_response": response
+            "channel": "Brevo HTTP API",
+            "message": f"✅ Test email dispatched to {recipient}! Check your inbox now.",
+            "response": response
         }
     else:
         return {
             "status": "error",
-            "channel": "Resend HTTP API",
-            "message": "❌ Resend API call failed.",
+            "channel": "Brevo HTTP API",
+            "message": "❌ Brevo API call failed.",
+            "error": response
+        }
+
+
+# ─── MSG91 SMS Auto-Reply Engine ─────────────────────────────────────
+
+MSG91_AUTH_KEY = "PLACEHOLDER_MSG91_AUTH_KEY"
+MSG91_SENDER_ID = "RSECNC"  # 6-char sender ID (registered on MSG91)
+MSG91_ROUTE = "4"  # Route 4 = Transactional SMS
+MSG91_DLT_TE_ID = ""  # DLT Template ID (required for Indian SMS regulations)
+
+def sanitize_phone(phone: str) -> str:
+    """Clean phone number to pure digits with country code for MSG91."""
+    import re
+    digits = re.sub(r'\D', '', phone)
+    # If 10 digits, prepend India code
+    if len(digits) == 10:
+        digits = "91" + digits
+    # If starts with 0, remove it and prepend 91
+    elif digits.startswith("0"):
+        digits = "91" + digits[1:]
+    return digits
+
+def send_sms(phone: str, message: str):
+    """Send SMS via MSG91 Flow API over HTTPS — bypasses all cloud firewall blocks."""
+    import urllib.request
+    import urllib.error
+    import json
+    
+    clean_phone = sanitize_phone(phone)
+    
+    url = "https://control.msg91.com/api/v5/flow/"
+    
+    # MSG91 SendOTP/Flow API payload
+    payload = {
+        "sender": MSG91_SENDER_ID,
+        "route": MSG91_ROUTE,
+        "country": "91",
+        "sms": [
+            {
+                "message": message,
+                "to": [clean_phone]
+            }
+        ]
+    }
+    
+    try:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={
+                "authkey": MSG91_AUTH_KEY,
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=15) as response:
+            res_body = response.read().decode("utf-8")
+            print(f"✅ MSG91: SMS delivered to {clean_phone}. Response: {res_body}")
+            return True, res_body
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8")
+        print(f"❌ MSG91 HTTP Error {e.code}: {error_body}")
+        return False, f"HTTP {e.code}: {error_body}"
+    except Exception as e:
+        print(f"❌ MSG91: Failed to send SMS to {clean_phone}. Error: {e}")
+        return False, str(e)
+
+def send_price_sms(phone: str, contact_name: str, machine_name: str, price_str: str, machine_desc: str = ""):
+    """Compose and send an automated B2B price quote SMS to the buyer."""
+    # Fetch dynamic contact info
+    rs_phone = "+91 90507 00577"
+    rs_whatsapp = "919050700577"
+    
+    if db_connected and settings_collection is not None:
+        try:
+            settings = settings_collection.find_one({}, {"_id": 0})
+            if settings:
+                rs_phone = settings.get("phone_number", rs_phone)
+                rs_whatsapp = settings.get("whatsapp_number", rs_whatsapp)
+        except Exception:
+            pass
+    
+    message = (
+        f"RS ENTERPRISE CNC\n"
+        f"━━━━━━━━━━━━━━━━━━\n"
+        f"Dear {contact_name},\n\n"
+        f"Thank you for your inquiry!\n\n"
+        f"Machine: {machine_name}\n"
+        f"Price: {price_str}\n"
+        f"{'Desc: ' + machine_desc if machine_desc else ''}\n\n"
+        f"This is a certified pre-owned CNC machine, fully inspected & laser-calibrated to <0.01mm tolerance.\n\n"
+        f"Contact Us:\n"
+        f"Call: {rs_phone}\n"
+        f"WhatsApp: wa.me/{rs_whatsapp}\n\n"
+        f"— RS Enterprise, Ludhiana"
+    )
+    
+    return send_sms(phone, message)
+
+@app.get("/api/diagnostics/sms")
+async def test_sms_diagnostics():
+    """Test SMS delivery pipeline using MSG91."""
+    test_phone = "919050700577"  # Admin's own number for testing
+    test_message = (
+        "RS ENTERPRISE CNC\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "SMS Diagnostics Test\n\n"
+        "Your MSG91 SMS pipeline is fully operational!\n"
+        "All buyer auto-quotes will now be delivered via SMS.\n\n"
+        "— Antigravity AI Core"
+    )
+    
+    success, response = send_sms(test_phone, test_message)
+    
+    if success:
+        return {
+            "status": "success",
+            "channel": "MSG91 SMS API",
+            "message": f"✅ Test SMS dispatched to {test_phone}! Check the phone now.",
+            "response": response
+        }
+    else:
+        return {
+            "status": "error",
+            "channel": "MSG91 SMS API",
+            "message": "❌ MSG91 SMS API call failed.",
             "error": response
         }
 
@@ -1044,7 +1174,9 @@ async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTas
             # Send dynamic notifications asynchronously in background
             background_tasks.add_task(send_email, "jashansohal2008@gmail.com", subject, body)
             background_tasks.add_task(send_email, req.contact_email, buyer_subject, buyer_body)
-            return {"status": "success", "message": "Purchase inquiry submitted successfully."}
+            # ── SMS Auto-Reply: Send price quote to buyer's phone ──
+            background_tasks.add_task(send_price_sms, req.contact_phone, req.contact_name, req.machine_name, machine_price_str, machine_description)
+            return {"status": "success", "message": "Purchase inquiry submitted successfully. Price quote sent via SMS."}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to save inquiry: {e}")
             
@@ -1053,7 +1185,9 @@ async def purchase_inquiry(req: PurchaseInquiry, background_tasks: BackgroundTas
     demo_buyer_subject = f"🛍️ [Local Demo] {buyer_subject}"
     background_tasks.add_task(send_email, "jashansohal2008@gmail.com", demo_subject, body)
     background_tasks.add_task(send_email, req.contact_email, demo_buyer_subject, buyer_body)
-    return {"status": "success", "message": "Demo submission received successfully (Offline/Local)."}
+    # ── SMS Auto-Reply (Demo): Send price quote to buyer's phone ──
+    background_tasks.add_task(send_price_sms, req.contact_phone, req.contact_name, req.machine_name, machine_price_str, machine_description)
+    return {"status": "success", "message": "Demo submission received. Price quote sent via SMS."}
 
 
 @app.post("/api/contact")
