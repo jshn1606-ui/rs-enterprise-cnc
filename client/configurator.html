@@ -378,6 +378,82 @@
                     </div>
                 </div>
 
+                <!-- G-CODE TOOLPATH SCANNER & SIMULATOR CARD -->
+                <div class="dash-panel" style="margin-top: 2rem; width: 100%; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;">
+                        <h3 style="color: var(--accent-orange); margin: 0; display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-file-code"></i> G-Code Toolpath Integrity & Stress Simulator
+                        </h3>
+                        <!-- Dropdown to select B2B demo toolpaths -->
+                        <div style="display: flex; gap: 0.8rem; align-items: center;">
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">Load Demo Profile:</span>
+                            <select id="gcode-demo-select" class="glass-input" style="padding: 0.4rem 0.8rem; min-height: unset; width: 220px; font-size: 0.85rem; height: 34px;">
+                                <option value="" disabled selected>Select preloaded profile...</option>
+                                <option value="gear">Ludhiana Helical Gear-Cut</option>
+                                <option value="winglet">Aerospace Waveform Winglet</option>
+                                <option value="turbine">Industrial Spindle Rotor</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Simulator main viewport layout -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
+                        <!-- Left column: Canvas viewport -->
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <!-- File drag and drop overlay zone -->
+                            <div id="gcode-dropzone" style="border: 2px dashed var(--glass-border); border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.5rem; color: var(--accent-blue);"></i>
+                                <span style="font-size: 0.9rem; font-weight: 500;">Drag & drop raw .gcode/.nc file here, or click to browse</span>
+                                <input type="file" id="gcode-file-input" accept=".gcode,.nc,.txt" style="display: none;">
+                            </div>
+
+                            <!-- Interactive Canvas Screen -->
+                            <div style="position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--glass-border); background: #070709; height: 350px;">
+                                <canvas id="gcode-canvas" style="display: block; width: 100%; height: 100%;"></canvas>
+                                <!-- Simulator playbar overlay -->
+                                <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(10, 15, 30, 0.75); border: 1px solid var(--glass-border); padding: 0.5rem 1rem; border-radius: 8px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                                    <div style="display: flex; gap: 0.8rem;">
+                                        <button type="button" id="gcode-btn-play" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1rem;" title="Play Animation"><i class="fa-solid fa-play"></i></button>
+                                        <button type="button" id="gcode-btn-pause" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1rem;" title="Pause"><i class="fa-solid fa-pause"></i></button>
+                                        <button type="button" id="gcode-btn-reset" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1rem;" title="Reset"><i class="fa-solid fa-rotate-left"></i></button>
+                                    </div>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);" id="gcode-anim-status">Ready</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right column: parsed metrics -->
+                        <div class="dash-panel" style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); padding: 1.5rem; height: 100%; display: flex; flex-direction: column; gap: 1rem;">
+                            <h4 style="color: var(--accent-blue); margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;"><i class="fa-solid fa-gauge-high"></i> Telemetry & Constraints</h4>
+                            
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">G-Code Program Lines:</span>
+                                <span style="font-weight: 600; font-size: 0.85rem;" id="gcode-metric-lines">—</span>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">Est. Cycle Duration:</span>
+                                <span style="font-weight: 600; font-size: 0.85rem; color: #00e676;" id="gcode-metric-time">—</span>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">Gantry Feed Rate Index:</span>
+                                <span style="font-weight: 600; font-size: 0.85rem; color: #ffc107;" id="gcode-metric-feed">—</span>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">Workpiece Bounds Volume:</span>
+                                <span style="font-weight: 600; font-size: 0.85rem; font-family: monospace; color: var(--accent-blue);" id="gcode-metric-box">—</span>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; padding-top: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">Structural Tool Integrity:</span>
+                                <span style="font-weight: bold; font-size: 0.85rem; color: #00e676; background: rgba(0, 230, 118, 0.1); padding: 2px 8px; border-radius: 4px;" id="gcode-metric-status">PASS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="text-align:center; margin-top:3rem; display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap;">
                     <a href="machines.html" class="btn-primary" style="margin:0;"><i class="fa-solid fa-cart-shopping"></i> Purchase / Dispatch Machine</a>
                     <button type="button" id="btn-export-spec" class="export-spec-btn"><i class="fa-solid fa-file-arrow-down"></i> Export Custom Specs</button>
