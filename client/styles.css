@@ -1755,3 +1755,159 @@ body.theme-light .pipeline-bar-track {
         font-size: 0.8rem;
     }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   ADVANCED UX ENHANCEMENTS & PREMIUM MICRO-INTERACTIONS
+   ══════════════════════════════════════════════════════════════════════ */
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom modern thin scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0a0a0c;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-orange);
+}
+
+/* Floating back to top button */
+.back-to-top-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(15px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.back-to-top-btn.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+.back-to-top-btn:hover {
+    background: var(--accent-orange);
+    border-color: transparent;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 25px rgba(255, 87, 34, 0.4);
+    color: #fff;
+}
+
+/* Premium Toast Notification System */
+.toast-container {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+}
+.toast-card {
+    background: rgba(10, 15, 30, 0.85);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+    padding: 0.8rem 1.6rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: auto;
+}
+.toast-card.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.toast-success {
+    border-left: 4px solid #00e676;
+}
+.toast-info {
+    border-left: 4px solid var(--accent-blue);
+}
+.toast-warning {
+    border-left: 4px solid #ffc107;
+}
+
+/* Glass card and button enhanced hover glows */
+.feature-card, .industry-card, .gallery-card, .testimonial-card, .btn-primary, .btn-secondary, .axis-toggle {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.feature-card:hover, .gallery-card:hover, .testimonial-card:hover {
+    transform: translateY(-6px) scale(1.01) !important;
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 15px 35px rgba(255, 87, 34, 0.1) !important;
+}
+.industry-card:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    border-color: var(--accent-blue) !important;
+    box-shadow: 0 15px 35px rgba(0, 210, 255, 0.15) !important;
+}
+
+/* Input glows and micro-focus */
+.glass-input:focus, .glass-textarea:focus, .lead-status-select:focus {
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 0 12px rgba(255, 87, 34, 0.25) !important;
+    transform: scale(1.002);
+    transition: all 0.25s ease;
+}
+
+/* Configurator additional styling */
+.export-spec-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    color: #fff;
+    padding: 0.8rem 1.4rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.export-spec-btn:hover {
+    background: rgba(0, 210, 255, 0.1);
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+}
+
+/* Clipboard hover hint cursor */
+[data-copy-trigger] {
+    cursor: copy !important;
+}

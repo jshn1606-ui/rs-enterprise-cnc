@@ -117,8 +117,70 @@ document.addEventListener('DOMContentLoaded', () => {
             transition(stepLoading, stepDashboard);
             
             if (data.status === 'success') {
-                document.getElementById('roi-payback').textContent = data.roi_report.payback_period_months + " Months";
-                document.getElementById('roi-savings').textContent = "$" + data.roi_report.projected_annual_savings_usd.toLocaleString();
+                // Counter animations for the ROI statistics (UX feature 8)
+                const paybackVal = data.roi_report.payback_period_months;
+                const savingsVal = data.roi_report.projected_annual_savings_usd;
+                
+                // Animate payback months
+                const paybackEl = document.getElementById('roi-payback');
+                if (paybackEl) {
+                    window.animateCounter(paybackEl, 0, paybackVal, 1200);
+                    setTimeout(() => { paybackEl.textContent = paybackEl.textContent + " Months"; }, 1300);
+                }
+
+                // Animate savings dollar amount
+                const savingsEl = document.getElementById('roi-savings');
+                if (savingsEl) {
+                    window.animateCounter(savingsEl, 0, savingsVal, 1500);
+                    setTimeout(() => { savingsEl.textContent = "$" + savingsEl.textContent; }, 1600);
+                }
+
+                // Tag the export button click listener (UX feature 7)
+                const exportBtn = document.getElementById('btn-export-spec');
+                if (exportBtn) {
+                    exportBtn.addEventListener('click', () => {
+                        const fileContent = `====================================================
+RS ENTERPRISE CNC - AI SIMULATION CALIBRATION SPEC SHEET
+====================================================
+Generated: ${new Date().toLocaleString()}
+Company Profile:
+- Company Name: ${payload.client_profile.company_name}
+- Contact Person: ${payload.client_profile.contact_name}
+- Email: ${payload.client_profile.contact_email}
+- Phone: ${payload.client_profile.contact_phone}
+
+Simulated Technical Requirements:
+- Chosen Industry: ${payload.client_profile.industry}
+- Kinematic Axes: ${payload.technical_requirements.required_axes}-Axis
+- Workpiece Material: ${payload.technical_requirements.material}
+- Max Gantry Footprint: ${payload.technical_requirements.max_footprint_sqft} sq ft
+- Target Cycle Time Constraint: ${payload.technical_requirements.target_cycle_time_mins} minutes
+
+Optimized Geometry Results:
+- Recommended Base Model: ${data.machine_configuration.base_model}
+- Spindle Kinematic Speed: ${data.machine_configuration.spindle_speed_rpm.toLocaleString()} RPM
+- Travel Geometry: Fully Calibrated
+- Controller Module: Siemens 840D (Stress-fitted)
+- Calibration Rating: Certified to <0.01mm tolerance
+
+B2B Financial Payback Forecast:
+- Amortized Payback Period: ${data.roi_report.payback_period_months} Months
+- Projected Annual Savings: $${data.roi_report.projected_annual_savings_usd.toLocaleString()} USD
+====================================================
+Certified and Inspected in Ludhiana, Punjab.
+====================================================`;
+                        
+                        const blob = new Blob([fileContent], { type: 'text/plain' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `RS_CNC_AI_SpecSheet_${payload.client_profile.company_name.replace(/\\s+/g, '_')}.txt`;
+                        link.click();
+                        
+                        if (window.showToast) {
+                            window.showToast("B2B Calibration Spec Sheet downloaded successfully!", "success");
+                        }
+                    });
+                }
 
                 // Secure Frontend Email Dispatch (Bypasses Render firewall blocks completely!)
                 const emailSubject = `🚨 New CNC Sale & Configuration Query from ${payload.client_profile.company_name || 'N/A'}`;
