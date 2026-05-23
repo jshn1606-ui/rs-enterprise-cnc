@@ -117,23 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
             transition(stepLoading, stepDashboard);
             
             if (data.status === 'success') {
-                // Counter animations for the ROI statistics (UX feature 8)
-                const paybackVal = data.roi_report.payback_period_months;
-                const savingsVal = data.roi_report.projected_annual_savings_usd;
-                
-                // Animate payback months
-                const paybackEl = document.getElementById('roi-payback');
-                if (paybackEl) {
-                    window.animateCounter(paybackEl, 0, paybackVal, 1200);
-                    setTimeout(() => { paybackEl.textContent = paybackEl.textContent + " Months"; }, 1300);
-                }
-
-                // Animate savings dollar amount
-                const savingsEl = document.getElementById('roi-savings');
-                if (savingsEl) {
-                    window.animateCounter(savingsEl, 0, savingsVal, 1500);
-                    setTimeout(() => { savingsEl.textContent = "$" + savingsEl.textContent; }, 1600);
-                }
+                // Initialize B2B ROI cash-flow analyzer (Major Feature 2)
+                initROISection(data);
 
                 // Tag the export button click listener (UX feature 7)
                 const exportBtn = document.getElementById('btn-export-spec');
@@ -227,8 +212,10 @@ Notification automatically dispatched by RS Enterprise CNC Portal.
             // Fallback for demo if backend is offline
             setTimeout(() => {
                 transition(stepLoading, stepDashboard);
-                document.getElementById('roi-payback').textContent = "14 Months (Mocked)";
-                document.getElementById('roi-savings').textContent = "$42,000 (Mocked)";
+                initROISection({
+                    machine_configuration: { estimated_price_usd: 75000 },
+                    roi_report: { payback_period_months: 14, projected_annual_savings_usd: 42000 }
+                });
             }, 1000);
         });
     });
@@ -580,4 +567,248 @@ Notification automatically dispatched by RS Enterprise CNC Portal.
             ctx.stroke();
         }
     }
+
+    // ─── MAJOR FEATURE 2: B2B Cash-Flow ROI Calculator & Dynamic SVG Chart ─
+    let roiInitialized = false;
+
+    window.initROISection = function(data) {
+        const costInput = document.getElementById('roi-input-investment');
+        const wasteInput = document.getElementById('roi-input-waste');
+        const effInput = document.getElementById('roi-input-efficiency');
+
+        const costVal = document.getElementById('roi-val-investment');
+        const wasteVal = document.getElementById('roi-val-waste');
+        const effVal = document.getElementById('roi-val-efficiency');
+
+        const paybackEl = document.getElementById('roi-payback');
+        const savingsEl = document.getElementById('roi-savings');
+
+        if (!costInput || !wasteInput || !effInput) return;
+
+        // Prefill default or configured investment amount
+        if (data && data.machine_configuration && data.machine_configuration.estimated_price_usd) {
+            costInput.value = data.machine_configuration.estimated_price_usd;
+        }
+
+        const formatCurrency = (val) => {
+            return "$" + Math.round(val).toLocaleString();
+        };
+
+        const recalculate = (isInitial = false) => {
+            const I = parseFloat(costInput.value);
+            const W = parseFloat(wasteInput.value);
+            const E = parseFloat(effInput.value) / 100;
+
+            costVal.textContent = formatCurrency(I);
+            wasteVal.textContent = formatCurrency(W);
+            effVal.textContent = (E * 100).toFixed(0) + "%";
+
+            // Upgraded spindle reduces waste by 85% (15% remains)
+            const wasteSavings = 0.85 * W;
+            // Spindle operating efficiency saves relative to base operational spending
+            const efficiencySavings = E * 5000;
+            
+            const monthlySavings = wasteSavings + efficiencySavings;
+            const annualSavings = monthlySavings * 12;
+            const paybackMonths = monthlySavings > 0 ? (I / monthlySavings) : Infinity;
+
+            if (paybackEl) {
+                if (paybackMonths === Infinity) {
+                    paybackEl.textContent = "Never";
+                } else if (isInitial && window.animateCounter) {
+                    window.animateCounter(paybackEl, 0, Math.round(paybackMonths), 1000);
+                    setTimeout(() => { paybackEl.textContent = paybackMonths.toFixed(1) + " Months"; }, 1100);
+                } else {
+                    paybackEl.textContent = paybackMonths.toFixed(1) + " Months";
+                }
+            }
+            if (savingsEl) {
+                if (isInitial && window.animateCounter) {
+                    window.animateCounter(savingsEl, 0, Math.round(annualSavings), 1200);
+                    setTimeout(() => { savingsEl.textContent = formatCurrency(annualSavings); }, 1300);
+                } else {
+                    savingsEl.textContent = formatCurrency(annualSavings);
+                }
+            }
+
+            drawROISVGChart(I, W, E, monthlySavings, paybackMonths);
+        };
+
+        if (roiInitialized) {
+            // Already bound, just recalculate with new incoming machine config
+            recalculate(true);
+            return;
+        }
+        roiInitialized = true;
+
+        // Bind interactive event listeners
+        costInput.addEventListener('input', () => recalculate(false));
+        wasteInput.addEventListener('input', () => recalculate(false));
+        effInput.addEventListener('input', () => recalculate(false));
+
+        // Initial render with animation
+        recalculate(true);
+    };
+
+    function drawROISVGChart(I, W, E, monthlySavings, paybackMonths) {
+        const svg = document.getElementById('roi-svg-chart');
+        if (!svg) return;
+
+        // SVG parameters matches responsive viewport
+        const width = 300;
+        const height = 150;
+        const paddingLeft = 35;
+        const paddingRight = 15;
+        const paddingTop = 15;
+        const paddingBottom = 20;
+        
+        const chartWidth = width - paddingLeft - paddingRight;
+        const chartHeight = height - paddingTop - paddingBottom;
+
+        // Monthly calculations over 60 months (5 years)
+        const oldVals = [];
+        const newVals = [];
+        for (let m = 0; m <= 60; m += 2) {
+            const oldPos = -m * W;
+            const newPos = -I - m * (0.15 * W) + m * (E * 5000);
+            oldVals.push({ m, val: oldPos });
+            newVals.push({ m, val: newPos });
+        }
+
+        // Set baseline scale
+        const minVal = Math.min(
+            -60 * W, 
+            -I, 
+            -I - 60 * (0.15 * W) + 60 * (E * 5000)
+        ) * 1.05; // 5% graphical margin
+        const maxVal = 5000;
+
+        const getX = (m) => paddingLeft + (m / 60) * chartWidth;
+        const getY = (val) => paddingTop + (1 - (val - minVal) / (maxVal - minVal)) * chartHeight;
+
+        let svgHtml = ``;
+
+        // 1. Gridlines (Horizontal)
+        const gridStep = Math.ceil(Math.abs(minVal) / 4 / 25000) * 25000 || 50000;
+        for (let val = 0; val >= minVal; val -= gridStep) {
+            const y = getY(val);
+            if (y >= paddingTop && y <= height - paddingBottom) {
+                svgHtml += `
+                    <line x1="${paddingLeft}" y1="${y}" x2="${width - paddingRight}" y2="${y}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                    <text x="${paddingLeft - 5}" y="${y + 2.5}" fill="rgba(255,255,255,0.35)" font-size="6.5" font-family="sans-serif" text-anchor="end">-${Math.round(Math.abs(val)/1000)}k</text>
+                `;
+            }
+        }
+
+        // Vertical lines for Years (0 to 5)
+        for (let yr = 0; yr <= 5; yr++) {
+            const m = yr * 12;
+            const x = getX(m);
+            svgHtml += `
+                <line x1="${x}" y1="${paddingTop}" x2="${x}" y2="${height - paddingBottom}" stroke="rgba(255,255,255,0.03)" stroke-width="1" stroke-dasharray="2,2"/>
+                <text x="${x}" y="${height - paddingBottom + 10}" fill="rgba(255,255,255,0.35)" font-size="6.5" font-family="sans-serif" text-anchor="middle">Y${yr}</text>
+            `;
+        }
+
+        // 2. Plot Status Quo line (Neon Red)
+        let oldPath = `M ${getX(oldVals[0].m)} ${getY(oldVals[0].val)}`;
+        for (let i = 1; i < oldVals.length; i++) {
+            oldPath += ` L ${getX(oldVals[i].m)} ${getY(oldVals[i].val)}`;
+        }
+        svgHtml += `<path d="${oldPath}" fill="none" stroke="#ff3838" stroke-width="1.5" opacity="0.75" />`;
+
+        // 3. Plot Upgraded Spindle line (Neon Green)
+        let newPath = `M ${getX(newVals[0].m)} ${getY(newVals[0].val)}`;
+        for (let i = 1; i < newVals.length; i++) {
+            newPath += ` L ${getX(newVals[i].m)} ${getY(newVals[i].val)}`;
+        }
+        svgHtml += `<path d="${newPath}" fill="none" stroke="#00e676" stroke-width="1.8" />`;
+
+        // 4. Highlight break-even intersection point
+        if (paybackMonths > 0 && paybackMonths <= 60) {
+            const breakX = getX(paybackMonths);
+            const breakY = getY(-paybackMonths * W);
+            svgHtml += `
+                <circle cx="${breakX}" cy="${breakY}" r="3.5" fill="#ffc107" stroke="#0a0a0c" stroke-width="1"/>
+                <line x1="${breakX}" y1="${paddingTop}" x2="${breakX}" y2="${height - paddingBottom}" stroke="#ffc107" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.5"/>
+            `;
+        }
+
+        // 5. Hairline for tooltip tracking
+        svgHtml += `<line id="roi-hairline" x1="0" y1="${paddingTop}" x2="0" y2="${height - paddingBottom}" stroke="rgba(255,255,255,0.2)" stroke-width="0.8" style="display:none; pointer-events:none;"/>`;
+
+        // Inject SVG markup
+        svg.innerHTML = svgHtml;
+
+        // 6. Interactive Tooltip Tracking Mouse Listener
+        const wrapper = document.getElementById('roi-chart-wrapper');
+        const tooltip = document.getElementById('roi-chart-tooltip');
+        
+        if (wrapper && tooltip) {
+            const trackingHandler = (e) => {
+                const rect = svg.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                
+                // Scale coordinate back to SVG coordinate space
+                const svgMouseX = (mouseX / rect.width) * width;
+                const xInChart = svgMouseX - paddingLeft;
+                
+                if (xInChart < 0 || xInChart > chartWidth) {
+                    tooltip.style.display = 'none';
+                    const hairline = document.getElementById('roi-hairline');
+                    if (hairline) hairline.style.display = 'none';
+                    return;
+                }
+
+                // Map x to month (0 to 60)
+                const m = Math.min(Math.max(Math.round((xInChart / chartWidth) * 60), 0), 60);
+                
+                // Calculate exact positions
+                const oldPos = -m * W;
+                const newPos = -I - m * (0.15 * W) + m * (E * 5000);
+                const adv = newPos - oldPos;
+
+                // Position tooltip and hairline
+                const hairline = document.getElementById('roi-hairline');
+                if (hairline) {
+                    const hx = getX(m);
+                    hairline.setAttribute('x1', hx);
+                    hairline.setAttribute('x2', hx);
+                    hairline.style.display = 'block';
+                }
+
+                // Position tooltip nicely
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${mouseX + 10}px`;
+                tooltip.style.top = `15px`; // Center align
+
+                // If tooltip overflows right side of wrapper, flip it
+                if (mouseX + 10 + 155 > rect.width) {
+                    tooltip.style.left = `${mouseX - 160}px`;
+                }
+
+                // Fill tooltip data
+                document.getElementById('tooltip-title').textContent = `Month ${m} (${(m/12).toFixed(1)} Years)`;
+                document.getElementById('tooltip-old-val').textContent = `-$${Math.round(Math.abs(oldPos)).toLocaleString()}`;
+                document.getElementById('tooltip-new-val').textContent = `-$${Math.round(Math.abs(newPos)).toLocaleString()}`;
+                
+                const advEl = document.getElementById('tooltip-adv-val');
+                if (adv >= 0) {
+                    advEl.textContent = `+$${Math.round(adv).toLocaleString()}`;
+                    advEl.style.color = '#00e676';
+                } else {
+                    advEl.textContent = `-$${Math.round(Math.abs(adv)).toLocaleString()}`;
+                    advEl.style.color = '#ff3838';
+                }
+            };
+
+            wrapper.addEventListener('mousemove', trackingHandler);
+            wrapper.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+                const hairline = document.getElementById('roi-hairline');
+                if (hairline) hairline.style.display = 'none';
+            });
+        }
+    }
+}
 });
