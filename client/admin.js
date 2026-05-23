@@ -38,6 +38,27 @@ function authHeaders() {
     return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` };
 }
 
+// ─── Toggle Password Visibility ──────────────────────────────────────
+const togglePasswordBtn = document.getElementById('toggle-password');
+const passwordInput = document.getElementById('password');
+const passwordEyeIcon = document.getElementById('password-eye-icon');
+
+if (togglePasswordBtn && passwordInput && passwordEyeIcon) {
+    togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        if (type === 'password') {
+            passwordEyeIcon.classList.remove('fa-eye-slash');
+            passwordEyeIcon.classList.add('fa-eye');
+            togglePasswordBtn.setAttribute('title', 'Show Password');
+        } else {
+            passwordEyeIcon.classList.remove('fa-eye');
+            passwordEyeIcon.classList.add('fa-eye-slash');
+            togglePasswordBtn.setAttribute('title', 'Hide Password');
+        }
+    });
+}
+
 // ─── Auto-login ─────────────────────────────────────────────────────
 if (authToken) showDashboard();
 

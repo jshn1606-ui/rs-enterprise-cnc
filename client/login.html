@@ -198,7 +198,12 @@
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="password" class="glass-input" placeholder="••••••••" required>
+                    <div style="position: relative; width: 100%;">
+                        <input type="password" id="password" class="glass-input" placeholder="••••••••" required style="padding-right: 2.75rem;">
+                        <button type="button" id="toggle-password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; transition: color 0.2s;" title="Show Password">
+                            <i class="fa-solid fa-eye" id="password-eye-icon"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-primary" style="border:none;width:100%;justify-content:center;cursor:pointer;margin-top:1rem;">Log In <i class="fa-solid fa-right-to-bracket"></i></button>
             </form>
