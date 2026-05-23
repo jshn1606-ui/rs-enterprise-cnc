@@ -1,11 +1,11 @@
 :root {
-    --bg-dark: #0a0a0c;
-    --accent-orange: #ff5722;
-    --accent-blue: #00d2ff;
-    --text-main: #ffffff;
-    --text-muted: #888890;
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --glass-border: rgba(255, 255, 255, 0.08);
+    --bg-dark: #f8f9fa; /* Frosted Platinum light grey */
+    --accent-orange: #c2410c; /* Elegant Warm Copper / Rust */
+    --accent-blue: #0284c7; /* Platinum Blue / Deep Sky */
+    --text-main: #0f172a; /* Deep Slate Indigo text */
+    --text-muted: #475569; /* Slate grey */
+    --glass-bg: rgba(255, 255, 255, 0.7); /* Translucent frosted white */
+    --glass-border: rgba(15, 23, 42, 0.08); /* Clean border */
     --nav-height: 80px;
 }
 
@@ -33,8 +33,8 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at 15% 50%, rgba(255, 87, 34, 0.06), transparent 35%),
-                radial-gradient(circle at 85% 30%, rgba(0, 210, 255, 0.06), transparent 35%);
+    background: radial-gradient(circle at 15% 50%, rgba(194, 65, 12, 0.04), transparent 35%),
+                radial-gradient(circle at 85% 30%, rgba(2, 132, 199, 0.04), transparent 35%);
     z-index: -1;
     animation: pulseBg 15s infinite alternate;
 }
@@ -51,7 +51,7 @@ body {
     left: 0;
     width: 100%;
     height: var(--nav-height);
-    background: rgba(10, 10, 12, 0.7);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border-bottom: 1px solid var(--glass-border);
@@ -404,9 +404,9 @@ label {
 
 .glass-input, .glass-slider {
     width: 100%;
-    background: rgba(0,0,0,0.3);
+    background: rgba(255, 255, 255, 0.85);
     border: 1px solid var(--glass-border);
-    color: #fff;
+    color: var(--text-main);
     padding: 1rem;
     border-radius: 8px;
     font-size: 1rem;
@@ -420,6 +420,7 @@ label {
 
 .glass-input option {
     background-color: var(--bg-dark);
+    color: var(--text-main);
 }
 
 .toggle-group {
@@ -429,9 +430,9 @@ label {
 
 .axis-toggle {
     flex: 1;
-    background: rgba(0,0,0,0.3);
+    background: rgba(255, 255, 255, 0.7);
     border: 1px solid var(--glass-border);
-    color: #fff;
+    color: var(--text-main);
     padding: 1rem;
     border-radius: 8px;
     cursor: pointer;
@@ -843,12 +844,12 @@ label {
 }
 
 .leads-table tr:hover td {
-    background: rgba(255,255,255,0.02);
+    background: rgba(15, 23, 42, 0.02);
 }
 
 /* Footer styling */
 .glass-footer {
-    background: rgba(10, 10, 12, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     border-top: 1px solid var(--glass-border);
     padding: 2rem 0;
     margin-top: auto;
@@ -1599,7 +1600,7 @@ label {
 
 /* ═══ Lead Status Dropdown ═══ */
 .lead-status-select {
-    background: rgba(0,0,0,0.3);
+    background: rgba(255, 255, 255, 0.85);
     border: 1px solid var(--glass-border);
     color: var(--text-main);
     padding: 0.4rem 0.6rem;
@@ -1615,56 +1616,65 @@ label {
 
 .lead-status-select option {
     background: var(--bg-dark);
+    color: var(--text-main);
 }
 
-/* ═══ Light Theme ═══ */
+/* ═══ Dark Theme Overrides (using theme-light class toggled by JS) ═══ */
 body.theme-light {
-    --bg-dark: #f0f2f5;
-    --text-main: #1a1a2e;
-    --text-muted: #666680;
-    --glass-bg: rgba(255, 255, 255, 0.6);
-    --glass-border: rgba(0, 0, 0, 0.08);
+    --bg-dark: #0a0a0c;
+    --accent-orange: #ff5722;
+    --accent-blue: #00d2ff;
+    --text-main: #ffffff;
+    --text-muted: #888890;
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 body.theme-light .mesh-background {
-    background: radial-gradient(circle at 15% 50%, rgba(255, 87, 34, 0.04), transparent 35%),
-                radial-gradient(circle at 85% 30%, rgba(0, 210, 255, 0.04), transparent 35%);
+    background: radial-gradient(circle at 15% 50%, rgba(255, 87, 34, 0.06), transparent 35%),
+                radial-gradient(circle at 85% 30%, rgba(0, 210, 255, 0.06), transparent 35%);
 }
 
 body.theme-light .glass-navbar {
-    background: rgba(255, 255, 255, 0.8);
-    border-bottom-color: rgba(0,0,0,0.06);
+    background: rgba(10, 10, 12, 0.7);
+    border-bottom-color: rgba(255,255,255,0.08);
 }
 
 body.theme-light .glass-input,
 body.theme-light .glass-textarea,
-body.theme-light .lead-status-select {
-    background: rgba(255,255,255,0.8);
-    color: #1a1a2e;
-    border-color: rgba(0,0,0,0.1);
+body.theme-light .lead-status-select,
+body.theme-light .axis-toggle {
+    background: rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
 body.theme-light .glass-input option,
 body.theme-light .lead-status-select option {
-    background: #fff;
-    color: #1a1a2e;
+    background: #0a0a0c;
+    color: #ffffff;
 }
 
 body.theme-light .glass-footer {
-    background: rgba(255,255,255,0.9);
+    background: rgba(10, 10, 12, 0.95);
+    border-top-color: rgba(255,255,255,0.08);
 }
 
 body.theme-light .quick-add-menu {
-    background: rgba(255,255,255,0.95);
-    border-color: rgba(0,0,0,0.1);
+    background: rgba(10, 10, 12, 0.98);
+    border-color: rgba(255,255,255,0.08);
 }
 
 body.theme-light .quick-add-menu button:hover {
-    background: rgba(0,0,0,0.04);
+    background: rgba(255,255,255,0.04);
 }
 
 body.theme-light .pipeline-bar-track {
-    background: rgba(0,0,0,0.04);
+    background: rgba(255,255,255,0.05);
+}
+
+body.theme-light .leads-table tr:hover td {
+    background: rgba(255,255,255,0.02);
 }
 
 /* ═══ Mobile Responsiveness ═══ */
