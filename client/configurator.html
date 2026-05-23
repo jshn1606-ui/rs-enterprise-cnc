@@ -1,17 +1,402 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=maintenance.html">
-    <title>Redirecting to CNC Machine Maintenance Portal...</title>
-    <script type="text/javascript">
-        window.location.href = "maintenance.html";
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI CNC Configurator - RS Enterprise CNC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Immersive Configurator Custom Aesthetics */
+        .app-container {
+            position: relative;
+            min-height: 700px;
+            margin: 2rem auto;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wizard-step {
+            position: absolute;
+            width: calc(100% - 6rem);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            transform: translateY(30px);
+        }
+
+        .wizard-step.active {
+            opacity: 1;
+            pointer-events: auto;
+            visibility: visible;
+            transform: translateY(0);
+            position: relative;
+            width: 100%;
+        }
+
+        .wizard-step.exit-up {
+            opacity: 0;
+            transform: translateY(-30px);
+            pointer-events: none;
+            visibility: hidden;
+            position: absolute;
+        }
+
+        /* 3D Digital Twin SVG Animation */
+        .digital-twin-container {
+            width: 100%;
+            height: 380px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .digital-twin-svg {
+            width: 100%;
+            height: 100%;
+            max-height: 340px;
+        }
+
+        /* Hologram scanning effect */
+        .holo-scan-line {
+            stroke: #00d2ff;
+            stroke-width: 1.5;
+            stroke-dasharray: 5, 5;
+            animation: scanning 4s linear infinite;
+        }
+
+        @keyframes scanning {
+            0% { transform: translateY(-50px); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(280px); opacity: 0; }
+        }
+
+        .spindle-rotate {
+            transform-origin: 250px 180px;
+            animation: spinning 2s linear infinite;
+        }
+
+        @keyframes spinning {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Ambient glowing dots */
+        .glow-node {
+            fill: #ff5722;
+            animation: pulse-dot 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-dot {
+            0% { r: 3; opacity: 0.4; }
+            100% { r: 6; opacity: 1; filter: drop-shadow(0 0 4px #ff5722); }
+        }
+
+        /* Loader & Simulation Screen styles */
+        .loader-wrapper {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loader-icon {
+            font-size: 4rem;
+            color: var(--accent-orange);
+            margin-bottom: 2rem;
+            animation: rotate-loader 2s linear infinite;
+        }
+
+        @keyframes rotate-loader {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Form elements spacing adjustments */
+        .b2b-form-section {
+            border-top: 1px solid var(--glass-border);
+            padding-top: 2rem;
+            margin-top: 2rem;
+        }
+
+        .b2b-form-title {
+            color: var(--accent-orange);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
 </head>
-<body style="background:#0a0f1e; color:#ffffff; font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
-    <div style="text-align:center;">
-        <h2 style="color:#00e672;">Redirecting to CNC Machine Maintenance Portal...</h2>
-        <p style="color:#8892b0;">If you are not redirected automatically, <a href="maintenance.html" style="color:#00e6f2; text-decoration:none;">click here</a>.</p>
-    </div>
+<body>
+    <div class="mesh-background"></div>
+
+    <!-- Navigation Header -->
+    <header class="glass-navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="rs_logo.png" alt="RS Enterprise Logo" style="height: 38px; border-radius: 6px;">
+                <span class="logo-bold">RS</span> Enterprise
+            </a>
+            <nav class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="machines.html" class="nav-link">Machines</a>
+                <a href="configurator.html" class="nav-link active">AI Configurator</a>
+                <a href="maintenance.html" class="nav-link">CNC Machine Maintenance</a>
+                <a href="contact.html" class="nav-link">Contact</a>
+                <a href="login.html" class="nav-link btn-nav">Admin</a>
+            </nav>
+            <button class="nav-toggle" id="nav-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="page-container" style="max-width: 1100px;">
+        <section class="hero-section" style="padding-top: 2rem; padding-bottom: 0;">
+            <span class="hero-tagline">Simulate the Perfect Gantry Specs & ROI</span>
+            <h1 class="hero-title" style="margin-bottom: 1rem;">CNC AI Configurator</h1>
+            <p class="hero-subtitle" style="font-size: 1.05rem; margin-bottom: 2rem;">Tune axis geometries, calculate stress tolerances, and receive real-time business payback forecasting instantly.</p>
+        </section>
+
+        <!-- WIZARD APP CONTAINER -->
+        <div class="app-container">
+
+            <!-- STEP 1: Industry Vertical Selection -->
+            <div class="wizard-step active" id="step-industry">
+                <h2 class="headline">Select Your Primary <span>Industry Vertical</span></h2>
+                <div class="card-grid">
+                    <div class="industry-card" data-industry="Aerospace & Defense">
+                        <div class="icon"><i class="fa-solid fa-plane-up"></i></div>
+                        <h2>Aerospace</h2>
+                        <p>Simultaneous 5-axis geometries for titanium, invar, and turbine tooling.</p>
+                    </div>
+                    <div class="industry-card" data-industry="Automotive & Transport">
+                        <div class="icon"><i class="fa-solid fa-car-side"></i></div>
+                        <h2>Automotive</h2>
+                        <p>High-speed structural routing, steel components, and mold frames.</p>
+                    </div>
+                    <div class="industry-card" data-industry="Precision Medical">
+                        <div class="icon"><i class="fa-solid fa-microchip"></i></div>
+                        <h2>Medical</h2>
+                        <p>Micro-tolerances under 0.005mm for cobalt-chrome surgical implants.</p>
+                    </div>
+                    <div class="industry-card" data-industry="General Tool & Die">
+                        <div class="icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                        <h2>Mold & Die</h2>
+                        <p>High-rigidity spindles for mold cavities, heavy casting machining.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: Workpiece Material & Kinematic Axes -->
+            <div class="wizard-step hidden" id="step-material">
+                <h2 class="headline">Define Spindle <span>Kinematics & Materials</span></h2>
+                <div class="input-group">
+                    <label for="material-select"><i class="fa-solid fa-cubes"></i> Primary Workpiece Material</label>
+                    <select id="material-select" class="glass-input">
+                        <option value="" disabled selected>Select stock alloy...</option>
+                        <option value="Aluminum 6061 / 7075">Aluminum Alloys (6061 / 7075)</option>
+                        <option value="Titanium Grade 5 (Ti-6Al-4V)">Titanium Alloys (Grade 5)</option>
+                        <option value="Tool Steel (P20 / H13)">Hardened Tool Steel (P20 / H13)</option>
+                        <option value="Brass / Copper Alloys">Copper & Brass Alloys</option>
+                        <option value="Composite & Technical Plastics">Composites & Carbon Fiber</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label><i class="fa-solid fa-dharmachakra"></i> Required Kinematic Axes</label>
+                    <div class="toggle-group">
+                        <button type="button" class="axis-toggle" data-axes="3">3-Axis Standard<br><span style="font-size:0.75rem; opacity:0.8; font-weight:300;">(Linear X/Y/Z)</span></button>
+                        <button type="button" class="axis-toggle" data-axes="4">4-Axis Rotary<br><span style="font-size:0.75rem; opacity:0.8; font-weight:300;">(Index/Continuous A)</span></button>
+                        <button type="button" class="axis-toggle" data-axes="5">5-Axis Simultaneous<br><span style="font-size:0.75rem; opacity:0.8; font-weight:300;">(Trunnion B/C)</span></button>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-next-material" class="btn-primary" style="border:none; width:100%; justify-content:center; cursor:pointer; margin-top:2rem;">Configure Gantry Footprint & Constraints <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+
+            <!-- STEP 3: Dimensional Constraints & B2B Profile Form -->
+            <div class="wizard-step hidden" id="step-constraints">
+                <h2 class="headline">Dimensional <span>Constraints & B2B Profile</span></h2>
+                
+                <div class="input-group">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:1rem; align-items:center;">
+                        <label for="footprint-slider" style="margin:0;"><i class="fa-solid fa-maximize"></i> Max Floor Footprint</label>
+                        <span style="font-weight:bold; color:var(--accent-blue); font-size:1.1rem;"><span id="footprint-val">150</span> sq ft</span>
+                    </div>
+                    <input type="range" id="footprint-slider" class="glass-slider" min="50" max="400" value="150" style="cursor:pointer; width:100%;">
+                    <div class="microcopy">Sets structural limits for gantry travel. Small footprints optimize tool rigidity.</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="cycle-time-input"><i class="fa-solid fa-stopwatch"></i> Target Cycle Time Constraint (Minutes)</label>
+                    <input type="number" id="cycle-time-input" class="glass-input" min="1" max="120" value="12" required>
+                    <div class="microcopy">Critical target time for full G-code toolpath run. Simulates spindle torque needs.</div>
+                </div>
+
+                <!-- NEW: Integrated B2B Company Details Profile Form -->
+                <div class="input-group b2b-form-section">
+                    <h3 class="b2b-form-title"><i class="fa-solid fa-building-circle-arrow-right"></i> B2B Corporate Handoff Details</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="company-name" style="font-size:0.85rem; margin-bottom:0.4rem;">Company Name</label>
+                            <input type="text" id="company-name" class="glass-input" placeholder="e.g., Ludhiana Gears Ltd." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-name" style="font-size:0.85rem; margin-bottom:0.4rem;">Contact Person</label>
+                            <input type="text" id="contact-name" class="glass-input" placeholder="e.g., Jashan Sohal" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contact-email" style="font-size:0.85rem; margin-bottom:0.4rem;">Contact Email</label>
+                            <input type="email" id="contact-email" class="glass-input" placeholder="name@company.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-phone" style="font-size:0.85rem; margin-bottom:0.4rem;">Contact Phone</label>
+                            <input type="tel" id="contact-phone" class="glass-input" placeholder="+91 98765-43210" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-analyze" class="btn-primary" style="border:none; width:100%; justify-content:center; cursor:pointer; margin-top:2rem;">
+                    Run G-Code & Spindle Simulation <i class="fa-solid fa-microchip" style="margin-left:6px;"></i>
+                </button>
+            </div>
+
+            <!-- STEP 4: Loader & Scanning holographic G-code -->
+            <div class="wizard-step hidden" id="step-loading">
+                <div class="loader-wrapper">
+                    <i class="fa-solid fa-circle-notch loader-icon"></i>
+                    <h2 style="font-size:1.8rem; margin-bottom:1rem;">Tuning Spindle & Travel Geometries</h2>
+                    <p style="color:var(--text-muted); max-width:500px; margin:0 auto 2rem auto; font-size:0.95rem;">Analyzing axis stress vectors, calculating feed rate optimization ratios, and generating dynamic B2B ROI report...</p>
+                    <div class="scanner"></div>
+                    
+                    <div class="skeleton-grid">
+                        <div class="skeleton-box s-large"></div>
+                        <div class="skeleton-col">
+                            <div class="skeleton-box s-small"></div>
+                            <div class="skeleton-box s-small"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 5: Final Simulation Dashboard Morph -->
+            <div class="wizard-step hidden" id="step-dashboard">
+                <div class="dashboard-header">
+                    <span class="hero-tagline" style="color:#00e676;"><i class="fa-solid fa-circle-check"></i> AI Geometry Optimization Complete</span>
+                    <h1 style="font-size:2.2rem; margin-bottom:0.5rem;">CNC Configuration Dashboard</h1>
+                    <p>Optimized B2B machinery metrics based on the G.T. Road Yard Ludhiana inventory database.</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Left: Interactive Hologram Digital Twin -->
+                    <div class="dash-panel render-panel" style="flex:1.2; flex-direction:column; gap:1.5rem; text-align:center;">
+                        <h3 style="color:#00d2ff; margin-bottom:0; width:100%; text-align:left;"><i class="fa-solid fa-network-wired"></i> Interactive 3D Digital Twin</h3>
+                        <div class="digital-twin-container">
+                            <svg class="digital-twin-svg" viewBox="0 0 500 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Machine Frame Outline -->
+                                <path d="M100 280 L200 320 L400 240 L300 200 Z" stroke="#00d2ff" stroke-width="1.2" opacity="0.3" />
+                                <path d="M100 120 L200 160 L400 80 L300 40 Z" stroke="#00d2ff" stroke-width="1.2" opacity="0.3" />
+                                <path d="M100 120 L100 280 M200 160 L200 320 M400 80 L400 240 M300 40 L300 200" stroke="#00d2ff" stroke-width="1.2" opacity="0.3" />
+                                
+                                <!-- Gantry Rails -->
+                                <line x1="150" y1="240" x2="350" y2="160" stroke="#ff5722" stroke-width="2" stroke-dasharray="2, 2" opacity="0.7" />
+                                
+                                <!-- Machining Table -->
+                                <polygon points="150,260 220,288 350,236 280,208" fill="rgba(0, 210, 255, 0.08)" stroke="#00d2ff" stroke-width="1.5" />
+                                
+                                <!-- Spindle & Head (Interactive mock spindle) -->
+                                <g class="spindle-rotate">
+                                    <circle cx="250" cy="180" r="15" stroke="#ff5722" stroke-width="1.5" fill="rgba(255, 87, 34, 0.1)" />
+                                    <line x1="250" y1="180" x2="265" y2="180" stroke="#ff5722" stroke-width="2" />
+                                    <line x1="250" y1="180" x2="235" y2="180" stroke="#ff5722" stroke-width="2" />
+                                </g>
+                                <line x1="250" y1="130" x2="250" y2="180" stroke="#00d2ff" stroke-width="2.5" />
+                                
+                                <!-- Glowing coordinates dots -->
+                                <circle cx="150" cy="260" class="glow-node" />
+                                <circle cx="350" cy="236" class="glow-node" />
+                                <circle cx="250" cy="180" class="glow-node" style="fill:#00d2ff;" />
+                                
+                                <!-- Isometric Coordinate lines grid -->
+                                <line x1="250" y1="180" x2="250" y2="280" stroke="#00d2ff" stroke-width="1" stroke-dasharray="3, 3" opacity="0.5" />
+                                
+                                <!-- Scanning Hologram Lasers -->
+                                <line x1="50" y1="50" x2="450" y2="50" class="holo-scan-line" />
+                                <line x1="50" y1="150" x2="450" y2="150" class="holo-scan-line" style="animation-delay: 2s;" />
+                            </svg>
+                        </div>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">Digital Twin model representing calibrated kinematics under 0.01mm tolerance.</div>
+                    </div>
+
+                    <!-- Right: ROI Report and Specifications -->
+                    <div class="dash-sidebar" style="flex:0.9;">
+                        <!-- ROI Analytics -->
+                        <div class="dash-panel highlight-panel">
+                            <h3><i class="fa-solid fa-chart-line"></i> Dynamic ROI Forecast</h3>
+                            <div class="metric">
+                                <span class="value success" id="roi-payback">—</span>
+                                <span class="label">Payback Period Period</span>
+                            </div>
+                            <div class="metric">
+                                <span class="value" id="roi-savings" style="color:#00d2ff;">—</span>
+                                <span class="label">Projected Annual Savings (USD)</span>
+                            </div>
+                        </div>
+
+                        <!-- Calibrated Specifications -->
+                        <div class="dash-panel spec-panel">
+                            <h3><i class="fa-solid fa-microchip"></i> Optimized Gantry Specs</h3>
+                            <ul id="spec-list">
+                                <li><strong>Model Base:</strong> RS-Titan 5X-Pro</li>
+                                <li><strong>Spindle Speed:</strong> 24,000 RPM</li>
+                                <li><strong>Travel Geometry:</strong> Fully Optimized</li>
+                                <li><strong>Controller Module:</strong> Siemens 840D (Fitted)</li>
+                                <li><strong>Calibration Rating:</strong> Certified to &lt;0.01mm</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align:center; margin-top:3rem; display:flex; gap:1.5rem; justify-content:center;">
+                    <a href="machines.html" class="btn-primary" style="margin:0;"><i class="fa-solid fa-cart-shopping"></i> Purchase / Dispatch Machine</a>
+                    <button type="button" onclick="location.reload()" class="btn-secondary"><i class="fa-solid fa-rotate-left"></i> Run Another Simulation</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="glass-footer">
+        <div class="footer-container">
+            <p>&copy; 2026 RS Enterprise. All Rights Reserved. Opp. G.T. Road, Ludhiana.</p>
+            <p class="designer">Designed & Engineered by Antigravity AI</p>
+        </div>
+    </footer>
+
+    <script src="navbar.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

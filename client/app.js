@@ -79,6 +79,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnAnalyze.addEventListener('click', () => {
         triggerHaptic();
+        
+        const company = document.getElementById('company-name').value;
+        const name = document.getElementById('contact-name').value;
+        const email = document.getElementById('contact-email').value;
+        const phone = document.getElementById('contact-phone').value;
+        
+        if (!company || !name || !email || !phone) {
+            alert("Please fill in all B2B Corporate Handoff Details.");
+            return;
+        }
+
+        payload.client_profile.company_name = company;
+        payload.client_profile.contact_name = name;
+        payload.client_profile.contact_email = email;
+        payload.client_profile.contact_phone = phone;
+
         payload.technical_requirements.max_footprint_sqft = parseInt(footprintSlider.value);
         payload.technical_requirements.target_cycle_time_mins = parseFloat(cycleTimeInput.value);
         
